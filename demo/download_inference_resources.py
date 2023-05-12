@@ -59,8 +59,7 @@ def parse_args():
         help='print all tasks that need input resources',
         default=None)
 
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():
@@ -81,7 +80,7 @@ def main():
         return
 
     if args.print_task:
-        print('RESOURCES of task ' + args.print_task + ':')
+        print(f'RESOURCES of task {args.print_task}:')
         for value in RESOURCES[args.print_task]:
             print(value)
         return
@@ -100,7 +99,7 @@ def main():
         mmengine.mkdir_or_exist(osp.dirname(put_path))
         response = requests.get(item)
         open(put_path, 'wb').write(response.content)
-        print('Download finished: ' + item + ' to ' + put_path)
+        print(f'Download finished: {item} to {put_path}')
 
 
 if __name__ == '__main__':

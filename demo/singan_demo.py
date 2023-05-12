@@ -45,8 +45,7 @@ def parse_args():
         type=int,
         default=10,
         help='the number of synthesized samples')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def _tensor2img(img):

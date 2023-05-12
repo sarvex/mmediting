@@ -38,52 +38,55 @@ def analyze_doc(home, path):
             if code_block > 0:
                 continue
 
-            if '[' in line and ']' in line and '(' in line and ')' in line:
-                all = pattern.findall(line)
-                for item in all:
-                    # skip  ![]()
-                    if item.find('[') == item.find(']') - 1:
-                        continue
-
-                    # process the case [text()]()
-                    offset = item.find('](')
-                    if offset == -1:
-                        continue
-                    item = item[offset:]
-                    start = item.find('(')
-                    end = item.find(')')
-                    ref = item[start + 1:end]
-
-                    if ref.startswith('http'):
-                        if ref.startswith(
-                                'https://download.openmmlab.com/'
-                        ) or ref.startswith('http://download.openmmlab.com/'):
-                            resp = requests.head(ref)
-                            if resp.status_code == 200:
-                                continue
-                            else:
-                                problem_list.append(ref)
-                        else:
-                            continue
-
-                    if ref.startswith('#'):
-                        continue
-
-                    if ref == '<>':
-                        continue
-
-                    if '.md#' in ref:
-                        ref = ref[:ref.find('#')]
-                    if ref.startswith('/'):
-                        fullpath = os.path.join(
-                            os.path.dirname(__file__), '../', ref[1:])
-                    else:
-                        fullpath = os.path.join(home, ref)
-                    if not os.path.exists(fullpath):
-                        problem_list.append(ref)
-            else:
+            if (
+                '[' not in line
+                or ']' not in line
+                or '(' not in line
+                or ')' not in line
+            ):
                 continue
-    if len(problem_list) > 0:
+            all = pattern.findall(line)
+            for item in all:
+                # skip  ![]()
+                if item.find('[') == item.find(']') - 1:
+                    continue
+
+                # process the case [text()]()
+                offset = item.find('](')
+                if offset == -1:
+                    continue
+                item = item[offset:]
+                start = item.find('(')
+                end = item.find(')')
+                ref = item[start + 1:end]
+
+                if ref.startswith('http'):
+                    if not ref.startswith(
+                        'https://download.openmmlab.com/'
+                    ) and not ref.startswith('http://download.openmmlab.com/'):
+                        continue
+
+                    resp = requests.head(ref)
+                    if resp.status_code == 200:
+                        continue
+                    else:
+                        problem_list.append(ref)
+                if ref.startswith('#'):
+                    continue
+
+                if ref == '<>':
+                    continue
+
+                if '.md#' in ref:
+                    ref = ref[:ref.find('#')]
+                fullpath = (
+                    os.path.join(os.path.dirname(__file__), '../', ref[1:])
+                    if ref.startswith('/')
+                    else os.path.join(home, ref)
+                )
+                if not os.path.exists(fullpath):
+                    problem_list.append(ref)
+    if problem_list:
         print(f'{path}:')
         for item in problem_list:
             print(f'\t {item}')
@@ -96,8 +99,7 @@ def traverse(args):
     if os.path.isfile(target):
         analyze_doc(os.path.dirname(target), target)
         return
-    target_files = list(os.walk(target))
-    target_files.sort()
+    target_files = sorted(os.walk(target))
     for home, dirs, files in tqdm(target_files):
         if home in args.ignore:
             continue

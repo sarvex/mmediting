@@ -13,10 +13,11 @@ model = dict(
     type='BasicInterpolator',
     generator=dict(
         type='TOFlowVFINet',
-        flow_cfg=dict(norm_cfg=None, pretrained=load_pretrained_spynet)),
+        flow_cfg=dict(norm_cfg=None, pretrained=load_pretrained_spynet),
+    ),
     pixel_loss=dict(type='CharbonnierLoss', loss_weight=1.0, reduction='mean'),
-    train_cfg=dict(),
-    test_cfg=dict(),
+    train_cfg={},
+    test_cfg={},
     required_frames=2,
     step_frames=1,
     init_cfg=None,
@@ -26,4 +27,5 @@ model = dict(
         std=[0.229 * 255, 0.224 * 255, 0.225 * 255],
         pad_size_divisor=16,
         pad_mode='reflect',
-    ))
+    ),
+)

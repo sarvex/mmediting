@@ -54,12 +54,8 @@ class PairedImageDataset(BaseDataset):
         Returns:
             list[dict]: List that contains paired image paths.
         """
-        data_infos = []
         pair_paths = sorted(self.scan_folder(self.data_root))
-        for pair_path in pair_paths:
-            data_infos.append(dict(pair_path=pair_path))
-
-        return data_infos
+        return [dict(pair_path=pair_path) for pair_path in pair_paths]
 
     def scan_folder(self, path):
         """Obtain image path list (including sub-folders) from a given folder.

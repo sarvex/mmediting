@@ -10,8 +10,7 @@ def parse_version_info(version_str):
             ver_info.append(int(x))
         elif x.find('rc') != -1:
             patch_version = x.split('rc')
-            ver_info.append(int(patch_version[0]))
-            ver_info.append(f'rc{patch_version[1]}')
+            ver_info.extend((int(patch_version[0]), f'rc{patch_version[1]}'))
     return tuple(ver_info)
 
 

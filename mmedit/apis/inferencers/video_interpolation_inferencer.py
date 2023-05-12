@@ -52,13 +52,12 @@ class VideoInterpolationInferencer(BaseMMEditInferencer):
         else:
             test_pipeline = self.model.cfg.val_pipeline
 
-        # remove the data loading pipeline
-        tmp_pipeline = []
-        for pipeline in test_pipeline:
-            if pipeline['type'] not in [
-                    'GenerateSegmentIndices', 'LoadImageFromFile'
-            ]:
-                tmp_pipeline.append(pipeline)
+        tmp_pipeline = [
+            pipeline
+            for pipeline in test_pipeline
+            if pipeline['type']
+            not in ['GenerateSegmentIndices', 'LoadImageFromFile']
+        ]
         test_pipeline = tmp_pipeline
 
         # compose the pipeline
@@ -89,9 +88,9 @@ class VideoInterpolationInferencer(BaseMMEditInferencer):
             h, w = source.height, source.width
             if self.extra_parameters['fps_multiplier']:
                 assert self.extra_parameters['fps_multiplier'] > 0, \
-                    '`fps_multiplier` cannot be negative'
+                        '`fps_multiplier` cannot be negative'
                 output_fps = \
-                    self.extra_parameters['fps_multiplier'] * input_fps
+                        self.extra_parameters['fps_multiplier'] * input_fps
             else:
                 fps = self.extra_parameters['fps']
                 output_fps = fps if fps > 0 else input_fps * 2
@@ -119,13 +118,13 @@ class VideoInterpolationInferencer(BaseMMEditInferencer):
 
         self.extra_parameters['end_idx'] = min(
             self.extra_parameters['end_idx'], length) \
-            if self.extra_parameters['end_idx'] is not None else length
+                if self.extra_parameters['end_idx'] is not None else length
 
         # calculate step args
         step_size = \
-            self.model.step_frames * self.extra_parameters['batch_size']
+                self.model.step_frames * self.extra_parameters['batch_size']
         lenth_per_step = self.model.required_frames + \
-            self.model.step_frames * (self.extra_parameters['batch_size'] - 1)
+                self.model.step_frames * (self.extra_parameters['batch_size'] - 1)
         repeat_frame = self.model.required_frames - self.model.step_frames
 
         prog_bar = ProgressBar(
@@ -159,7 +158,7 @@ class VideoInterpolationInferencer(BaseMMEditInferencer):
                 if len(output_tensors.shape) == 4:
                     output_tensors = output_tensors.unsqueeze(1)
                 result = self.model.merge_frames(input_tensors, output_tensors)
-            if not self.extra_parameters['start_idx'] == start_index:
+            if self.extra_parameters['start_idx'] != start_index:
                 result = result[repeat_frame:]
             prog_bar.update()
 
@@ -176,7 +175,7 @@ class VideoInterpolationInferencer(BaseMMEditInferencer):
                     output_index += 1
 
             if start_index + lenth_per_step >= \
-               self.extra_parameters['end_idx']:
+                   self.extra_parameters['end_idx']:
                 break
 
         logger: MMLogger = MMLogger.get_current_instance()

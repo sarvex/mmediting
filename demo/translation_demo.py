@@ -35,8 +35,7 @@ def parse_args():
         action=DictAction,
         help='Other customized kwargs for sampling function')
 
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():
@@ -45,7 +44,7 @@ def main():
         args.config, checkpoint=args.checkpoint, device=args.device)
 
     if args.sample_cfg is None:
-        args.sample_cfg = dict()
+        args.sample_cfg = {}
 
     results = sample_img2img_model(model, args.image_path, args.target_domain,
                                    **args.sample_cfg)

@@ -142,10 +142,7 @@ class GenerateFacialHeatmap(BaseTransform):
                  target_size,
                  sigma=1.0,
                  use_cache=True):
-        if isinstance(ori_size, int):
-            ori_size = (ori_size, ori_size)
-        else:
-            ori_size = ori_size[:2]
+        ori_size = (ori_size, ori_size) if isinstance(ori_size, int) else ori_size[:2]
         if isinstance(target_size, int):
             target_size = (target_size, target_size)
         else:
@@ -158,7 +155,7 @@ class GenerateFacialHeatmap(BaseTransform):
         self.ori_size = ori_size
         self.use_cache = use_cache
         if use_cache:
-            self.cache = dict()
+            self.cache = {}
 
         assert has_face_alignment, 'please import face-alignment.'
         device = 'cpu'
@@ -232,9 +229,7 @@ class GenerateFacialHeatmap(BaseTransform):
             if size > max_size:
                 max_size = size
                 index = i
-        landmark = faces[index]
-
-        return landmark
+        return faces[index]
 
     def _generate_one_heatmap(self, keypoint):
         """Generate One Heatmap.
@@ -253,9 +248,7 @@ class GenerateFacialHeatmap(BaseTransform):
         grid_x, grid_y = np.meshgrid(x_range, y_range)
         dist2 = (grid_x - keypoint[0])**2 + (grid_y - keypoint[1])**2
         exponent = dist2 / 2.0 / self.sigma / self.sigma
-        heatmap = np.exp(-exponent)
-
-        return heatmap
+        return np.exp(-exponent)
 
     def __repr__(self):
 

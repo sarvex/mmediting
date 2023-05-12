@@ -28,8 +28,11 @@ train_dataloader = dict(
         type=dataset_type,
         ann_file='meta_info_DF2K3450sub_GT.txt',
         metainfo=dict(dataset_type='div2k', task_name='sisr'),
-        data_root=data_root + '/DF2K',
+        data_root=f'{data_root}/DF2K',
         data_prefix=dict(
-            img='DF2K_train_LR_bicubic/X2_sub', gt='DF2K_train_HR_sub'),
+            img='DF2K_train_LR_bicubic/X2_sub', gt='DF2K_train_HR_sub'
+        ),
         filename_tmpl=dict(img='{}', gt='{}'),
-        pipeline=train_pipeline))
+        pipeline=train_pipeline,
+    ),
+)

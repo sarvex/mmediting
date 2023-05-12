@@ -16,13 +16,14 @@ model = dict(
         dec_blk_nums=[2, 2, 2, 2],
     ),
     pixel_loss=dict(type='PSNRLoss'),
-    train_cfg=dict(),
-    test_cfg=dict(),
+    train_cfg={},
+    test_cfg={},
     data_preprocessor=dict(
         type='EditDataPreprocessor',
         mean=[0.0, 0.0, 0.0],
         std=[255.0, 255.0, 255.0],
-    ))
+    ),
+)
 
 train_pipeline = [
     dict(type='LoadImageFromFile', key='img'),

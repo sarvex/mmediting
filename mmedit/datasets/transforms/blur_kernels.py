@@ -63,9 +63,7 @@ def calculate_gaussian_pdf(sigma_matrix, grid):
     """
 
     inverse_sigma = np.linalg.inv(sigma_matrix)
-    kernel = np.exp(-0.5 * np.sum(np.matmul(grid, inverse_sigma) * grid, 2))
-
-    return kernel
+    return np.exp(-0.5 * np.sum(np.matmul(grid, inverse_sigma) * grid, 2))
 
 
 def bivariate_gaussian(kernel_size,
@@ -102,11 +100,11 @@ def bivariate_gaussian(kernel_size,
     if is_isotropic:
         sigma_matrix = np.array([[sig_x**2, 0], [0,
                                                  sig_x**2]]).astype(np.float32)
-    else:
-        if sig_y is None:
-            raise ValueError('"sig_y" cannot be None if "is_isotropic" is '
-                             'False.')
+    elif sig_y is None:
+        raise ValueError('"sig_y" cannot be None if "is_isotropic" is '
+                         'False.')
 
+    else:
         sigma_matrix = get_rotated_sigma_matrix(sig_x, sig_y, theta)
 
     kernel = calculate_gaussian_pdf(sigma_matrix, grid)

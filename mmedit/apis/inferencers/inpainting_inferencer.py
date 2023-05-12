@@ -52,8 +52,7 @@ class InpaintingInferencer(BaseMMEditInferencer):
 
         # prepare data
         _data = infer_pipeline(dict(gt_path=img, mask_path=mask))
-        data = dict()
-        data['inputs'] = _data['inputs'] / 255.0
+        data = {'inputs': _data['inputs'] / 255.0}
         data = collate([data])
         data['data_samples'] = [_data['data_samples']]
         if 'cuda' in str(self.device):

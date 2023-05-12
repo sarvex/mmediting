@@ -141,8 +141,7 @@ class BaseMMEditInferencer(BaseInferencer):
         data = self.preprocess(**preprocess_kwargs)
         preds = self.forward(data, **forward_kwargs)
         imgs = self.visualize(preds, **visualize_kwargs)
-        results = self.postprocess(preds, imgs, **postprocess_kwargs)
-        return results
+        return self.postprocess(preds, imgs, **postprocess_kwargs)
 
     def get_extra_parameters(self) -> List[str]:
         """Each inferencer may has its own parameters. Call this function to
@@ -196,9 +195,7 @@ class BaseMMEditInferencer(BaseInferencer):
         Returns:
             dict: The output dictionary.
         """
-        result = {}
-        result['infer_results'] = pred_tensor
-        return result
+        return {'infer_results': pred_tensor}
 
     def visualize(self,
                   inputs: list,

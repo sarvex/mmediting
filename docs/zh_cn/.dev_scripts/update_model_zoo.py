@@ -85,12 +85,17 @@ def update_model_zoo():
         year = title.split('\'')[-1].split(')')[0]
 
         # count papers
-        papers = set(
-            (papertype,
-             titlecase.titlecase(paper.lower().strip()).replace('+', r'\+'))
+        papers = {
+            (
+                papertype,
+                titlecase.titlecase(paper.lower().strip()).replace('+', r'\+'),
+            )
             for (papertype, paper) in re.findall(
                 r'<!--\s*\[([A-Z]*?)\]\s*-->\s*\n.*?\btitle\s*=\s*{(.*?)}',
-                content, re.DOTALL))
+                content,
+                re.DOTALL,
+            )
+        }
 
         # paper links
         revcontent = '\n'.join(list(reversed(content.splitlines())))
@@ -109,13 +114,13 @@ def update_model_zoo():
             sorted(f'    - [{t}] {x} ({paperlinks[x]})' for t, x in papers))
 
         # count configs
-        configs = set(x.lower().strip()
-                      for x in re.findall(r'/configs/.*?\.py', content))
+        configs = {x.lower().strip() for x in re.findall(r'/configs/.*?\.py', content)}
 
         # count ckpts
-        ckpts = list(
+        ckpts = [
             x.lower().strip()
-            for x in re.findall(r'\[model\]\(https\:\/\/.*\.pth', content))
+            for x in re.findall(r'\[model\]\(https\:\/\/.*\.pth', content)
+        ]
         ckpts.extend(
             x.lower().strip()
             for x in re.findall(r'\[ckpt\]\(https\:\/\/.*\.pth', content))
@@ -129,14 +134,14 @@ def update_model_zoo():
 
         # count tasks
         task_desc = list(
-            set(x.lower().strip()
-                for x in re.findall(r'\*\*任务\*\*: .*', content)))
+            {x.lower().strip() for x in re.findall(r'\*\*任务\*\*: .*', content)}
+        )
         tasks = set()
-        if len(task_desc) > 0:
+        if task_desc:
             tasks = set(task_desc[0].split('**任务**: ')[1].split(', '))
 
         statsmsg = f"""## {title}"""
-        if len(tasks) > 0:
+        if tasks:
             statsmsg += f"\n* Tasks: {','.join(list(tasks))}"
         statsmsg += f"""
 

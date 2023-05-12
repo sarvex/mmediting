@@ -37,10 +37,10 @@ def update_model_zoo():
                 tasks[t].add(model.full_model)
 
     # assert the number of configs with the number of files
-    collections = set([m.in_collection for m in full_models])
+    collections = {m.in_collection for m in full_models}
     assert len(collections) == len(os.listdir(MMEDIT_ROOT / 'configs')) - 1
 
-    configs = set([str(MMEDIT_ROOT / m.config) for m in full_models])
+    configs = {str(MMEDIT_ROOT / m.config) for m in full_models}
     base_configs = glob(
         str(MMEDIT_ROOT / 'configs/_base_/**/*.py'), recursive=True)
     all_configs = glob(str(MMEDIT_ROOT / 'configs/**/*.py'), recursive=True)
@@ -88,16 +88,14 @@ def update_model_zoo():
         target_md = TARGET_ROOT / target_md
         models = sorted(models, key=lambda x: -x.data['Year'])
 
-        checkpoints = set()
-        for m in models:
-            if m.weights is not None and m.weights.startswith('https:'):
-                checkpoints.add(m.weights)
-        collections = set([m.in_collection for m in models])
+        checkpoints = {
+            m.weights
+            for m in models
+            if m.weights is not None and m.weights.startswith('https:')
+        }
+        collections = {m.in_collection for m in models}
 
-        papers = set()
-        for m in models:
-            papers.add(m.paper['Title'])
-
+        papers = {m.paper['Title'] for m in models}
         content = ''
         readme = set()
         for m in models:

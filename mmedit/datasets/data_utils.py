@@ -28,18 +28,17 @@ def infer_io_backend(data_root: str) -> str:
     """
     if (data_root.upper().startswith('HTTP')
             or data_root.upper().startswith('HTTPS')):
-        backend = 'http'
+        return 'http'
     elif data_root.upper().startswith('S3') or (
             len(data_root.split(':')) > 2
             and data_root.split(':')[1].upper() == 'S3'):
         # two case:
         # 1. s3://xxxxx (raw petrel path)
         # 2. CONFIG:s3://xxx  (petrel path with specific config)
-        backend = 'petrel'
+        return 'petrel'
     else:
         # use default one
-        backend = 'local'
-    return backend
+        return 'local'
 
 
 def calculate_md5(fpath: str,
@@ -93,9 +92,7 @@ def check_integrity(fpath, md5=None) -> bool:
     """
     if not os.path.isfile(fpath):
         return False
-    if md5 is None:
-        return True
-    return check_md5(fpath, md5)
+    return True if md5 is None else check_md5(fpath, md5)
 
 
 def download_url_to_file(url, dst, hash_prefix=None, progress=True):
@@ -156,8 +153,8 @@ def download_url_to_file(url, dst, hash_prefix=None, progress=True):
             digest = sha256.hexdigest()
             if digest[:len(hash_prefix)] != hash_prefix:
                 raise RuntimeError(
-                    'invalid hash value (expected "{}", got "{}")'.format(
-                        hash_prefix, digest))
+                    f'invalid hash value (expected "{hash_prefix}", got "{digest}")'
+                )
         shutil.move(f.name, dst)
     finally:
         f.close()
@@ -190,13 +187,12 @@ def download_url(url, root, filename=None, md5=None):
             print(f'Downloading {url} to {fpath}')
             download_url_to_file(url, fpath)
         except (urllib.error.URLError, IOError) as e:
-            if url[:5] == 'https':
-                url = url.replace('https:', 'http:')
-                print('Failed download. Trying https -> http instead.'
-                      f' Downloading {url} to {fpath}')
-                download_url_to_file(url, fpath)
-            else:
+            if url[:5] != 'https':
                 raise e
+            url = url.replace('https:', 'http:')
+            print('Failed download. Trying https -> http instead.'
+                  f' Downloading {url} to {fpath}')
+            download_url_to_file(url, fpath)
         # check integrity of downloaded file
         if not check_integrity(fpath, md5):
             raise RuntimeError('File not found or corrupted.')
@@ -304,10 +300,7 @@ def expanduser(path):
 
     If user or $HOME is unknown, do nothing.
     """
-    if isinstance(path, (str, PathLike)):
-        return osp.expanduser(path)
-    else:
-        return path
+    return osp.expanduser(path) if isinstance(path, (str, PathLike)) else path
 
 
 def find_folders(root: str, file_backend: BaseStorageBackend
@@ -323,14 +316,14 @@ def find_folders(root: str, file_backend: BaseStorageBackend
         - folders: The name of sub folders under the root.
         - folder_to_idx: The map from folder name to class idx.
     """
-    folders = list(
+    folders = sorted(
         file_backend.list_dir_or_file(
             root,
             list_dir=True,
             list_file=False,
             recursive=False,
-        ))
-    folders.sort()
+        )
+    )
     folder_to_idx = {folders[i]: i for i in range(len(folders))}
     return folders, folder_to_idx
 

@@ -118,10 +118,9 @@ class MMEdit:
         init_default_scope('mmedit')
         MMEdit.init_inference_supported_models_cfg()
         inferencer_kwargs = {}
-        inferencer_kwargs.update(
-            self._get_inferencer_kwargs(model_name, model_setting,
-                                        model_config, model_ckpt,
-                                        extra_parameters))
+        inferencer_kwargs |= self._get_inferencer_kwargs(
+            model_name, model_setting, model_config, model_ckpt, extra_parameters
+        )
         self.inferencer = MMEditInferencer(
             device=device, seed=seed, **inferencer_kwargs)
 
@@ -136,9 +135,7 @@ class MMEdit:
         if model_name is not None:
             cfgs = self.get_model_config(model_name)
             kwargs['task'] = cfgs['task']
-            setting_to_use = 0
-            if model_setting:
-                setting_to_use = model_setting
+            setting_to_use = model_setting if model_setting else 0
             config_dir = cfgs['settings'][setting_to_use]['Config']
             config_dir = config_dir[config_dir.find('configs'):]
             kwargs['config'] = os.path.join(
@@ -217,22 +214,21 @@ class MMEdit:
 
     @staticmethod
     def init_inference_supported_models_cfg() -> None:
-        if not MMEdit.inference_supported_models_cfg_inited:
-            all_cfgs_dir = osp.join(osp.dirname(__file__), '..', 'configs')
+        if MMEdit.inference_supported_models_cfg_inited:
+            return
+        all_cfgs_dir = osp.join(osp.dirname(__file__), '..', 'configs')
 
-            for model_name in MMEdit.inference_supported_models:
-                meta_file_dir = osp.join(all_cfgs_dir, model_name,
-                                         'metafile.yml')
-                with open(meta_file_dir, 'r') as stream:
-                    parsed_yaml = yaml.safe_load(stream)
-                task = parsed_yaml['Models'][0]['Results'][0]['Task']
-                MMEdit.inference_supported_models_cfg[model_name] = {}
-                MMEdit.inference_supported_models_cfg[model_name][
-                    'task'] = task  # noqa
-                MMEdit.inference_supported_models_cfg[model_name][
-                    'settings'] = parsed_yaml['Models']  # noqa
-
-            MMEdit.inference_supported_models_cfg_inited = True
+        for model_name in MMEdit.inference_supported_models:
+            meta_file_dir = osp.join(all_cfgs_dir, model_name,
+                                     'metafile.yml')
+            with open(meta_file_dir, 'r') as stream:
+                parsed_yaml = yaml.safe_load(stream)
+            task = parsed_yaml['Models'][0]['Results'][0]['Task']
+            MMEdit.inference_supported_models_cfg[model_name] = {
+                'task': task,
+                'settings': parsed_yaml['Models'],
+            }
+        MMEdit.inference_supported_models_cfg_inited = True
 
     @staticmethod
     def get_inference_supported_models() -> List:
@@ -259,8 +255,8 @@ class MMEdit:
         if not MMEdit.inference_supported_models_cfg_inited:
             MMEdit.init_inference_supported_models_cfg()
 
-        supported_models = []
-        for key in MMEdit.inference_supported_models_cfg.keys():
-            if MMEdit.inference_supported_models_cfg[key]['task'] == task:
-                supported_models.append(key)
-        return supported_models
+        return [
+            key
+            for key in MMEdit.inference_supported_models_cfg.keys()
+            if MMEdit.inference_supported_models_cfg[key]['task'] == task
+        ]

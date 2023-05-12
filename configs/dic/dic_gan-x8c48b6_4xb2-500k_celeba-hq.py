@@ -15,7 +15,8 @@ pretrained_light_cnn = 'https://download.openmmlab.com/mmediting/' + \
 model = dict(
     type='DIC',
     generator=dict(
-        type='DICNet', in_channels=3, out_channels=3, mid_channels=48),
+        type='DICNet', in_channels=3, out_channels=3, mid_channels=48
+    ),
     discriminator=dict(type='LightCNN', in_channels=3),
     pixel_loss=dict(type='L1Loss', loss_weight=1.0, reduction='mean'),
     align_loss=dict(type='MSELoss', loss_weight=0.1, reduction='mean'),
@@ -23,20 +24,23 @@ model = dict(
         type='LightCNNFeatureLoss',
         pretrained=pretrained_light_cnn,
         loss_weight=0.1,
-        criterion='l1'),
+        criterion='l1',
+    ),
     gan_loss=dict(
         type='GANLoss',
         gan_type='vanilla',
         loss_weight=0.005,
         real_label_val=1.0,
-        fake_label_val=0),
+        fake_label_val=0,
+    ),
     train_cfg=dict(pixel_init=10000, disc_repeat=2),
-    test_cfg=dict(),
+    test_cfg={},
     data_preprocessor=dict(
         type='EditDataPreprocessor',
         mean=[129.795, 108.12, 96.39],
         std=[255, 255, 255],
-    ))
+    ),
+)
 
 train_cfg = dict(
     type='IterBasedTrainLoop', max_iters=500_000, val_interval=5000)

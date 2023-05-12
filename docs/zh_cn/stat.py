@@ -30,12 +30,17 @@ for f in files:
     title = content.split('\n')[0].replace('#', '')
 
     # count papers
-    papers = set(
-        (papertype,
-         titlecase.titlecase(paper.lower().strip()).replace('+', r'\+'))
+    papers = {
+        (
+            papertype,
+            titlecase.titlecase(paper.lower().strip()).replace('+', r'\+'),
+        )
         for (papertype, paper) in re.findall(
             r'<!--\s*\[([A-Z]*?)\]\s*-->\s*\n.*?\btitle\s*=\s*{(.*?)}',
-            content, re.DOTALL))
+            content,
+            re.DOTALL,
+        )
+    }
     # paper links
     revcontent = '\n'.join(list(reversed(content.splitlines())))
     paperlinks = {}
@@ -50,13 +55,17 @@ for f in files:
     paperlist = '\n'.join(
         sorted(f'    - [{t}] {x} ({paperlinks[x]})' for t, x in papers))
     # count configs
-    configs = set(x.lower().strip()
-                  for x in re.findall(r'https.*configs/.*\.py', content))
+    configs = {
+        x.lower().strip()
+        for x in re.findall(r'https.*configs/.*\.py', content)
+    }
 
     # count ckpts
-    ckpts = set(x.lower().strip()
-                for x in re.findall(r'https://download.*\.pth', content)
-                if 'mmedit' in x)
+    ckpts = {
+        x.lower().strip()
+        for x in re.findall(r'https://download.*\.pth', content)
+        if 'mmedit' in x
+    }
 
     statsmsg = f"""
 ## [{title}]({f})
@@ -113,12 +122,17 @@ for f in files:
     title = content.split('\n')[0].replace('#', '')
 
     # count papers
-    papers = set(
-        (papertype,
-         titlecase.titlecase(paper.lower().strip()).replace('+', r'\+'))
+    papers = {
+        (
+            papertype,
+            titlecase.titlecase(paper.lower().strip()).replace('+', r'\+'),
+        )
         for (papertype, paper) in re.findall(
             r'<!--\s*\[([A-Z]*?)\]\s*-->\s*\n.*?\btitle\s*=\s*{(.*?)}',
-            content, re.DOTALL))
+            content,
+            re.DOTALL,
+        )
+    }
     # paper links
     revcontent = '\n'.join(list(reversed(content.splitlines())))
     paperlinks = {}
@@ -133,13 +147,17 @@ for f in files:
     paperlist = '\n'.join(
         sorted(f'    - [{t}] {x} ({paperlinks[x]})' for t, x in papers))
     # count configs
-    configs = set(x.lower().strip()
-                  for x in re.findall(r'https.*configs/.*\.py', content))
+    configs = {
+        x.lower().strip()
+        for x in re.findall(r'https.*configs/.*\.py', content)
+    }
 
     # count ckpts
-    ckpts = set(x.lower().strip()
-                for x in re.findall(r'https://download.*\.pth', content)
-                if 'mmedit' in x)
+    ckpts = {
+        x.lower().strip()
+        for x in re.findall(r'https://download.*\.pth', content)
+        if 'mmedit' in x
+    }
 
     statsmsg = f"""
 ## [{title}]({f})

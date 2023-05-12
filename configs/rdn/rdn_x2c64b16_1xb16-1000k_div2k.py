@@ -16,15 +16,17 @@ model = dict(
         out_channels=3,
         mid_channels=64,
         num_blocks=16,
-        upscale_factor=scale),
+        upscale_factor=scale,
+    ),
     pixel_loss=dict(type='L1Loss', loss_weight=1.0, reduction='mean'),
-    train_cfg=dict(),
+    train_cfg={},
     test_cfg=dict(metrics=['PSNR'], crop_border=scale),
     data_preprocessor=dict(
         type='EditDataPreprocessor',
-        mean=[0., 0., 0.],
-        std=[255., 255., 255.],
-    ))
+        mean=[0.0, 0.0, 0.0],
+        std=[255.0, 255.0, 255.0],
+    ),
+)
 
 train_pipeline = [
     dict(
@@ -80,11 +82,14 @@ train_dataloader = dict(
         type=dataset_type,
         ann_file='meta_info_DIV2K800sub_GT.txt',
         metainfo=dict(dataset_type='div2k', task_name='sisr'),
-        data_root=data_root + '/DIV2K',
+        data_root=f'{data_root}/DIV2K',
         data_prefix=dict(
-            img='DIV2K_train_LR_bicubic/X2_sub', gt='DIV2K_train_HR_sub'),
+            img='DIV2K_train_LR_bicubic/X2_sub', gt='DIV2K_train_HR_sub'
+        ),
         filename_tmpl=dict(img='{}', gt='{}'),
-        pipeline=train_pipeline))
+        pipeline=train_pipeline,
+    ),
+)
 
 val_dataloader = dict(
     num_workers=4,
@@ -94,9 +99,11 @@ val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         metainfo=dict(dataset_type='set5', task_name='sisr'),
-        data_root=data_root + '/Set5',
+        data_root=f'{data_root}/Set5',
         data_prefix=dict(img='LRbicx2', gt='GTmod12'),
-        pipeline=val_pipeline))
+        pipeline=val_pipeline,
+    ),
+)
 
 val_evaluator = dict(
     type='EditEvaluator',

@@ -162,21 +162,21 @@ class GenerateFrameIndiceswithPadding(BaseTransform):
         frame_list = []
         for i in range(current_idx - num_pad, current_idx + num_pad + 1):
             if i < 0:
-                if self.padding == 'replicate':
-                    pad_idx = 0
-                elif self.padding == 'reflection':
+                if self.padding == 'reflection':
                     pad_idx = -i
                 elif self.padding == 'reflection_circle':
                     pad_idx = current_idx + num_pad - i
+                elif self.padding == 'replicate':
+                    pad_idx = 0
                 else:
                     pad_idx = num_input_frames + i
             elif i > sequence_length:
-                if self.padding == 'replicate':
-                    pad_idx = sequence_length
-                elif self.padding == 'reflection':
+                if self.padding == 'reflection':
                     pad_idx = sequence_length * 2 - i
                 elif self.padding == 'reflection_circle':
                     pad_idx = (current_idx - num_pad) - (i - sequence_length)
+                elif self.padding == 'replicate':
+                    pad_idx = sequence_length
                 else:
                     pad_idx = i - num_input_frames
             else:
@@ -199,9 +199,7 @@ class GenerateFrameIndiceswithPadding(BaseTransform):
 
     def __repr__(self):
 
-        repr_str = self.__class__.__name__ + f"(padding='{self.padding}')"
-
-        return repr_str
+        return f"{self.__class__.__name__}(padding='{self.padding}')"
 
 
 @TRANSFORMS.register_module()

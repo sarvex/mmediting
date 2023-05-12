@@ -45,8 +45,8 @@ class UnpairedImageDataset(BaseDataset):
                  domain_a='A',
                  domain_b='B'):
         phase = 'test' if test_mode else 'train'
-        self.dataroot_a = osp.join(str(data_root), phase + 'A')
-        self.dataroot_b = osp.join(str(data_root), phase + 'B')
+        self.dataroot_a = osp.join(str(data_root), f'{phase}A')
+        self.dataroot_b = osp.join(str(data_root), f'{phase}B')
 
         if io_backend is None:
             self.file_backend = get_file_backend(uri=data_root)
@@ -87,11 +87,8 @@ class UnpairedImageDataset(BaseDataset):
         Returns:
             list[dict]: List that contains unpaired image paths of one domain.
         """
-        data_infos = []
         paths = sorted(self.scan_folder(dataroot))
-        for path in paths:
-            data_infos.append(dict(path=path))
-        return data_infos
+        return [dict(path=path) for path in paths]
 
     @force_full_init
     def get_data_info(self, idx) -> dict:
@@ -110,10 +107,10 @@ class UnpairedImageDataset(BaseDataset):
             img_b_path = self.data_infos_b[idx_b]['path']
         else:
             img_b_path = self.data_infos_b[idx % self.len_b]['path']
-        data_info = dict()
-        data_info[f'img_{self.domain_a}_path'] = img_a_path
-        data_info[f'img_{self.domain_b}_path'] = img_b_path
-        return data_info
+        return {
+            f'img_{self.domain_a}_path': img_a_path,
+            f'img_{self.domain_b}_path': img_b_path,
+        }
 
     def __len__(self):
         """The length of the dataset."""

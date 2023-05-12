@@ -33,8 +33,7 @@ def show_job_out(name, root, job_name_list):
     except ClassNotFound:
         lexer = lexers.get_lexer_by_name('text', stripnl=False, stripall=False)
     formatter = formatters.TerminalFormatter(bg='dark')  # dark or light
-    highlighted_file_content = highlight(out_content, lexer, formatter)
-    return highlighted_file_content
+    return highlight(out_content, lexer, formatter)
 
 
 def show_job_status(root, job_name_list, csv_path=None):
@@ -168,8 +167,7 @@ if __name__ == '__main__':
         with open('status.log', 'w') as f:
             f.write(plain_txt)
         print('save status to status.log')
+    elif args.resume.upper() == 'LATEST':
+        resume_from_file(osp.join(CACHE_DIR, 'latest'))
     else:
-        if args.resume.upper() == 'LATEST':
-            resume_from_file(osp.join(CACHE_DIR, 'latest'))
-        else:
-            resume_from_file(args.resume)
+        resume_from_file(args.resume)

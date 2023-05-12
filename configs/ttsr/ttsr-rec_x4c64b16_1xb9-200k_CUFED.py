@@ -17,17 +17,19 @@ model = dict(
         in_channels=3,
         out_channels=3,
         mid_channels=64,
-        num_blocks=(16, 16, 8, 4)),
+        num_blocks=(16, 16, 8, 4),
+    ),
     extractor=dict(type='LTE'),
     transformer=dict(type='SearchTransformer'),
     pixel_loss=dict(type='L1Loss', loss_weight=1.0, reduction='mean'),
-    train_cfg=dict(),
-    test_cfg=dict(),
+    train_cfg={},
+    test_cfg={},
     data_preprocessor=dict(
         type='EditDataPreprocessor',
         mean=[127.5, 127.5, 127.5],
         std=[127.5, 127.5, 127.5],
-    ))
+    ),
+)
 
 train_pipeline = [
     dict(
@@ -169,9 +171,11 @@ train_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         metainfo=dict(dataset_type='cufed', task_name='refsr'),
-        data_root=data_root + '/CUFED',
+        data_root=f'{data_root}/CUFED',
         data_prefix=dict(ref='ref', gt='input'),
-        pipeline=train_pipeline))
+        pipeline=train_pipeline,
+    ),
+)
 
 val_dataloader = dict(
     num_workers=8,
@@ -181,10 +185,12 @@ val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         metainfo=dict(dataset_type='cufed', task_name='refsr'),
-        data_root=data_root + '/CUFED',
+        data_root=f'{data_root}/CUFED',
         data_prefix=dict(ref='CUFED5', gt='CUFED5'),
         filename_tmpl=dict(ref='{}_1', gt='{}_0'),
-        pipeline=valid_pipeline))
+        pipeline=valid_pipeline,
+    ),
+)
 
 test_dataloader = val_dataloader
 

@@ -52,9 +52,12 @@ class MSCoCoDataset(BasicConditionalDataset):
                  lazy_init: bool = False,
                  classes: Union[str, Sequence[str], None] = None,
                  **kwargs):
-        ann_file = os.path.join('annotations', 'captions_' + phase +
-                                f'{year}.json') if ann_file == '' else ann_file
-        self.image_prename = 'COCO_' + phase + f'{year}_'
+        ann_file = (
+            os.path.join('annotations', (f'captions_{phase}' + f'{year}.json'))
+            if not ann_file
+            else ann_file
+        )
+        self.image_prename = f'COCO_{phase}' + f'{year}_'
         self.phase = phase
         self.drop_rate = drop_caption_rate
         self.year = year
@@ -77,10 +80,7 @@ class MSCoCoDataset(BasicConditionalDataset):
         json_file = mmengine.fileio.io.load(self.ann_file)
 
         def add_prefix(filename, prefix=''):
-            if not prefix:
-                return filename
-            else:
-                return file_backend.join_path(prefix, filename)
+            return filename if not prefix else file_backend.join_path(prefix, filename)
 
         data_list = []
         for item in json_file['annotations']:

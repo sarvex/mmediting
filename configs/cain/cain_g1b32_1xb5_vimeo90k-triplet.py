@@ -9,15 +9,16 @@ model = dict(
     type='CAIN',
     generator=dict(type='CAINNet'),
     pixel_loss=dict(type='L1Loss', loss_weight=1.0, reduction='mean'),
-    train_cfg=dict(),
-    test_cfg=dict(),
+    train_cfg={},
+    test_cfg={},
     required_frames=2,
     step_frames=1,
     init_cfg=None,
     data_preprocessor=dict(
         type='EditDataPreprocessor',
         pad_mode='reflect',
-    ))
+    ),
+)
 
 train_pipeline = [
     dict(

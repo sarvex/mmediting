@@ -54,8 +54,7 @@ def parse_args():
         default=6,
         help='Number of images displayed in each row of the grid')
 
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():
@@ -64,7 +63,7 @@ def main():
         args.config, checkpoint=args.checkpoint, device=args.device)
 
     if args.sample_cfg is None:
-        args.sample_cfg = dict()
+        args.sample_cfg = {}
 
     results = sample_unconditional_model(model, args.num_samples,
                                          args.num_batches, args.sample_model,

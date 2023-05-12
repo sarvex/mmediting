@@ -41,11 +41,10 @@ def additional_download(args):
             else:
                 import wget
                 wget.download(url, path)
+        elif args.dry_run:
+            print(f'wget --no-check-certificate -N {url} {path}')
         else:
-            if args.dry_run:
-                print(f'wget --no-check-certificate -N {url} {path}')
-            else:
-                os.system(f'wget --no-check-certificate -N {url} {path}')
+            os.system(f'wget --no-check-certificate -N {url} {path}')
 
 
 def parse_args():
@@ -64,8 +63,7 @@ def parse_args():
         action='store_true',
         help='Only show download command but not run')
 
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def download(args):
@@ -86,11 +84,12 @@ def download(args):
 
     if args.models:
         patterns = [re.compile(pattern) for pattern in args.models]
-        filter_models = {}
-        for k, v in models.items():
-            if any([re.match(pattern, k) for pattern in patterns]):
-                filter_models[k] = v
-        if len(filter_models) == 0:
+        filter_models = {
+            k: v
+            for k, v in models.items()
+            if any(re.match(pattern, k) for pattern in patterns)
+        }
+        if not filter_models:
             print('No model found, please specify models in:')
             print('\n'.join(models.keys()))
             return
@@ -128,12 +127,10 @@ def download(args):
 
         if osp.exists(download_path):
             print(f'Already exists {download_path}')
-            # do not delete when dry-run is true
-            if args.force and not args.dry_run:
-                print(f'Delete {download_path} to force re-download.')
-                os.system(f'rm -rf {download_path}')
-            else:
+            if not args.force or args.dry_run:
                 continue
+            print(f'Delete {download_path} to force re-download.')
+            os.system(f'rm -rf {download_path}')
         try:
             cmd_str_list = [
                 'wget', '-q', '--show-progress', '-p', download_root,

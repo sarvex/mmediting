@@ -16,14 +16,18 @@ model = dict(
         bias=False,
         norm_cfg=None,
         join_type='concat',
-        up_mode='transpose'),
+        up_mode='transpose',
+    ),
     pixel_loss=dict(type='L1Loss', loss_weight=1.0, reduction='mean'),
-    train_cfg=dict(),
-    test_cfg=dict(),
+    train_cfg={},
+    test_cfg={},
     required_frames=4,
     step_frames=1,
     init_cfg=None,
-    data_preprocessor=dict(type='EditDataPreprocessor', ))
+    data_preprocessor=dict(
+        type='EditDataPreprocessor',
+    ),
+)
 
 train_pipeline = [
     dict(

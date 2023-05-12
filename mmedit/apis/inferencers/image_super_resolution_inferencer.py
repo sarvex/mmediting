@@ -62,13 +62,10 @@ class ImageSuperResolutionInferencer(BaseMMEditInferencer):
         test_pipeline = Compose(test_pipeline)
 
         # prepare data
-        if ref:  # Ref-SR
-            data = dict(img_path=img, gt_path=ref)
-        else:  # SISR
-            data = dict(img_path=img)
+        data = dict(img_path=img, gt_path=ref) if ref else dict(img_path=img)
         _data = test_pipeline(data)
 
-        data = dict()
+        data = {}
         data_preprocessor = cfg['model']['data_preprocessor']
         mean = torch.Tensor(data_preprocessor['mean']).view([3, 1, 1])
         std = torch.Tensor(data_preprocessor['std']).view([3, 1, 1])

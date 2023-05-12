@@ -132,8 +132,7 @@ def sample_unconditional_model(model,
             dict(num_batches=batches, sample_model=sample_model), **kwargs)
         res_list.extend([item.fake_img.data.cpu() for item in res])
 
-    results = torch.stack(res_list, dim=0)
-    return results
+    return torch.stack(res_list, dim=0)
 
 
 @torch.no_grad()
@@ -178,18 +177,15 @@ def sample_conditional_model(model,
             # flatten multi tensors
             label = label.view(-1)
     elif isinstance(label, list):
-        if is_list_of(label, int):
-            label = torch.LongTensor(label)
-            # `nargs='+'` parse single integer as list
-            if label.numel() == 1:
-                # repeat single tensor
-                label = label.repeat(num_samples)
-        else:
+        if not is_list_of(label, int):
             raise TypeError('Only support `int` for label list elements, '
                             f'but receive {type(label[0])}')
-    elif label is None:
-        pass
-    else:
+        label = torch.LongTensor(label)
+        # `nargs='+'` parse single integer as list
+        if label.numel() == 1:
+            # repeat single tensor
+            label = label.repeat(num_samples)
+    elif label is not None:
         raise TypeError('Only support `int`, `torch.Tensor`, `list[int]` or '
                         f'None as label, but receive {type(label)}.')
 
@@ -223,8 +219,7 @@ def sample_conditional_model(model,
                 num_batches=batches, labels=labels, sample_model=sample_model),
             **kwargs)
         res_list.extend([item.fake_img.data.cpu() for item in res])
-    results = torch.stack(res_list, dim=0)
-    return results
+    return torch.stack(res_list, dim=0)
 
 
 def inpainting_inference(model, masked_img, mask):
@@ -255,7 +250,7 @@ def inpainting_inference(model, masked_img, mask):
     # prepare data
     data = dict(gt_path=masked_img, mask_path=mask)
     _data = test_pipeline(data)
-    data = dict()
+    data = {}
     data['inputs'] = _data['inputs'] / 255.0
     data = collate([data])
     data['data_samples'] = EditDataSample.stack([_data['data_samples']])
@@ -307,7 +302,7 @@ def matting_inference(model, img, trimap):
     data = dict(merged_path=img, trimap_path=trimap)
     _data = test_pipeline(data)
     trimap = _data['data_samples'].trimap
-    data = dict()
+    data = {}
     data['inputs'] = torch.cat([_data['inputs'], trimap], dim=0).float()
     data = collate([data])
     data['data_samples'] = EditDataSample.stack([_data['data_samples']])
@@ -343,12 +338,11 @@ def sample_img2img_model(model, image_path, target_domain=None, **kwargs):
     test_pipeline = Compose(cfg.test_pipeline)
 
     # prepare data
-    data = dict()
-    # dirty code to deal with test data pipeline
-    data['pair_path'] = image_path
-    data[f'img_{source_domain}_path'] = image_path
-    data[f'img_{target_domain}_path'] = image_path
-
+    data = {
+        'pair_path': image_path,
+        f'img_{source_domain}_path': image_path,
+        f'img_{target_domain}_path': image_path,
+    }
     data = collate([test_pipeline(data)])
     data = model.data_preprocessor(data, False)
     inputs_dict = data['inputs']
@@ -362,8 +356,7 @@ def sample_img2img_model(model, image_path, target_domain=None, **kwargs):
             test_mode=True,
             target_domain=target_domain,
             **kwargs)
-    output = results['target']
-    return output
+    return results['target']
 
 
 def restoration_inference(model, img, ref=None):
@@ -403,12 +396,9 @@ def restoration_inference(model, img, ref=None):
     # build the data pipeline
     test_pipeline = Compose(test_pipeline)
     # prepare data
-    if ref:  # Ref-SR
-        data = dict(img_path=img, ref_path=ref)
-    else:  # SISR
-        data = dict(img_path=img)
+    data = dict(img_path=img, ref_path=ref) if ref else dict(img_path=img)
     _data = test_pipeline(data)
-    data = dict()
+    data = {}
     data['inputs'] = dict(img=(_data['inputs'] / 255.0))
     data = collate([data])
     if ref:
@@ -498,7 +488,7 @@ def restoration_face_inference(model, img, upscale_factor=1, face_size=1024):
         mmcv.imwrite(img, 'demo/tmp.png')
         data = dict(lq=img.astype(np.float32), img_path='demo/tmp.png')
         _data = test_pipeline(data)
-        data = dict()
+        data = {}
         data['inputs'] = _data['inputs'] / 255.
         data = collate([data])
         if 'cuda' in str(device):
@@ -512,9 +502,7 @@ def restoration_face_inference(model, img, upscale_factor=1, face_size=1024):
         face_helper.add_restored_face(output)
 
     face_helper.get_inverse_affine(None)
-    restored_img = face_helper.paste_faces_to_input_image(upsample_img=None)
-
-    return restored_img
+    return face_helper.paste_faces_to_input_image(upsample_img=None)
 
 
 def pad_sequence(data, window_size):
@@ -584,13 +572,12 @@ def restoration_video_inference(model,
         for frame in video_reader:
             data['img'].append(np.flip(frame, axis=2))
 
-        # remove the data loading pipeline
-        tmp_pipeline = []
-        for pipeline in test_pipeline:
-            if pipeline['type'] not in [
-                    'GenerateSegmentIndices', 'LoadImageFromFile'
-            ]:
-                tmp_pipeline.append(pipeline)
+        tmp_pipeline = [
+            pipeline
+            for pipeline in test_pipeline
+            if pipeline['type']
+            not in ['GenerateSegmentIndices', 'LoadImageFromFile']
+        ]
         test_pipeline = tmp_pipeline
     else:
         # the first element in the pipeline must be 'GenerateSegmentIndices'
@@ -627,17 +614,17 @@ def restoration_video_inference(model,
                 data_i = data[:, i:i + window_size].to(device)
                 result.append(model(inputs=data_i, mode='tensor').cpu())
             result = torch.stack(result, dim=1)
-        else:  # recurrent framework
-            if max_seq_len is None:
-                result = model(inputs=data.to(device), mode='tensor').cpu()
-            else:
-                result = []
-                for i in range(0, data.size(1), max_seq_len):
-                    result.append(
-                        model(
-                            inputs=data[:, i:i + max_seq_len].to(device),
-                            mode='tensor').cpu())
-                result = torch.cat(result, dim=1)
+        elif max_seq_len is None:
+            result = model(inputs=data.to(device), mode='tensor').cpu()
+        else:
+            result = [
+                model(
+                    inputs=data[:, i : i + max_seq_len].to(device),
+                    mode='tensor',
+                ).cpu()
+                for i in range(0, data.size(1), max_seq_len)
+            ]
+            result = torch.cat(result, dim=1)
     return result
 
 
@@ -651,9 +638,9 @@ def read_image(filepath):
         image (np.array): Image.
     """
     img_bytes = FILE_CLIENT.get(filepath)
-    image = mmcv.imfrombytes(
-        img_bytes, flag='color', channel_order='rgb', backend='pillow')
-    return image
+    return mmcv.imfrombytes(
+        img_bytes, flag='color', channel_order='rgb', backend='pillow'
+    )
 
 
 def read_frames(source, start_index, num_frames, from_video, end_index):
@@ -720,13 +707,12 @@ def video_interpolation_inference(model,
     else:
         test_pipeline = model.cfg.val_pipeline
 
-    # remove the data loading pipeline
-    tmp_pipeline = []
-    for pipeline in test_pipeline:
-        if pipeline['type'] not in [
-                'GenerateSegmentIndices', 'LoadImageFromFile'
-        ]:
-            tmp_pipeline.append(pipeline)
+    tmp_pipeline = [
+        pipeline
+        for pipeline in test_pipeline
+        if pipeline['type']
+        not in ['GenerateSegmentIndices', 'LoadImageFromFile']
+    ]
     test_pipeline = tmp_pipeline
 
     # compose the pipeline
@@ -798,16 +784,16 @@ def video_interpolation_inference(model,
             if len(output_tensors.shape) == 4:
                 output_tensors = output_tensors.unsqueeze(1)
             result = model.merge_frames(input_tensors, output_tensors)
-        if not start_idx == start_index:
+        if start_idx != start_index:
             result = result[repeat_frame:]
         prog_bar.update()
 
         # save frames
-        if to_video:
-            for frame in result:
+        for frame in result:
+                    # save frames
+            if to_video:
                 target.write(frame)
-        else:
-            for frame in result:
+            else:
                 save_path = osp.join(output_dir,
                                      filename_tmpl.format(output_index))
                 mmcv.imwrite(frame, save_path)
@@ -839,7 +825,7 @@ def colorization_inference(model, img):
     # prepare data
     data = dict(img_path=img)
     _data = test_pipeline(data)
-    data = dict()
+    data = {}
     data['inputs'] = _data['inputs'] / 255.0
     data = collate([data])
     data['data_samples'] = [_data['data_samples']]

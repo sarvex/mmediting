@@ -69,8 +69,7 @@ def parse_args():
         help=('Number of images displayed in each row of the grid. '
               'This argument would work only when label is not given.'))
 
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():
@@ -79,7 +78,7 @@ def main():
         args.config, checkpoint=args.checkpoint, device=args.device)
 
     if args.sample_cfg is None:
-        args.sample_cfg = dict()
+        args.sample_cfg = {}
 
     if args.label is None and not args.sample_all_classes:
         label = None
@@ -100,12 +99,9 @@ def main():
                     'Cannot get attribute `num_classes` from '
                     f'{type(model)}. Please check your config.')
             # build label list
-            meta_labels = [idx for idx in range(num_classes)]
+            meta_labels = list(range(num_classes))
         else:
-            # get unique label
-            meta_labels = list(set(args.label))
-            meta_labels.sort()
-
+            meta_labels = sorted(set(args.label))
         # generate label to sample
         label = []
         for idx in meta_labels:

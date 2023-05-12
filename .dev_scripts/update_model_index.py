@@ -139,7 +139,6 @@ def parse_md(md_file):
             collection.paper = dict(URL=url, Title=title)
             i += 1
 
-        # parse table
         elif found_table(lines, i):
             cols = [col.strip() for col in lines[i].split('|')][1:-1]
 
@@ -173,7 +172,9 @@ def parse_md(md_file):
                         name=model_name,
                         in_collection=collection_name,
                         config=osp.join(
-                            osp.dirname(md_file), model_name + '.py'))
+                            osp.dirname(md_file), f'{model_name}.py'
+                        ),
+                    )
                     model_list[model_name] = model
 
                 # find results in each row
@@ -218,12 +219,10 @@ def parse_md(md_file):
 
     collection = modelindex_to_dict(collection)
     models = [modelindex_to_dict(m) for n, m in model_list.items()]
-    assert len(models) > 0, f"'no model is found in {md_file}'"
+    assert models, f"'no model is found in {md_file}'"
     result = {'Collections': [collection], 'Models': models}
     yml_file = md_file.replace('README.md', 'metafile.yml')
-    is_different = dump_yaml_and_check_difference(result, yml_file)
-
-    return is_different
+    return dump_yaml_and_check_difference(result, yml_file)
 
 
 def update_model_index():
@@ -244,10 +243,7 @@ def update_model_index():
         ]
     }
     model_index_file = osp.join(MMEditing_ROOT, 'model-index.yml')
-    is_different = dump_yaml_and_check_difference(model_index,
-                                                  model_index_file)
-
-    return is_different
+    return dump_yaml_and_check_difference(model_index, model_index_file)
 
 
 if __name__ == '__main__':

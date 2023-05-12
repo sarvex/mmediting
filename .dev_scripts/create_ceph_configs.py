@@ -40,7 +40,7 @@ def convert_data_config(data_cfg):
     dataset: dict = data_cfg['dataset']
 
     dataset_type: str = dataset['type']
-    if dataset_type in ['ImageNet', 'CIFAR10']:
+    if dataset_type in {'ImageNet', 'CIFAR10'}:
         repo_name = 'classification'
     else:
         repo_name = 'editing'
@@ -53,13 +53,13 @@ def convert_data_config(data_cfg):
             if data_root.startswith(dataroot_prefix):
                 # avoid cvt './data/imagenet' ->
                 # openmmlab:s3://openmmlab/datasets/classification//imagenet
-                if data_root.startswith(dataroot_prefix + '/'):
-                    dataroot_prefix = dataroot_prefix + '/'
+                if data_root.startswith(f'{dataroot_prefix}/'):
+                    dataroot_prefix = f'{dataroot_prefix}/'
                 data_root = data_root.replace(dataroot_prefix,
                                               ceph_dataroot_prefix)
                 # add '/' at the end
                 if not data_root.endswith('/'):
-                    data_root = data_root + '/'
+                    data_root = f'{data_root}/'
                 dataset['data_root'] = data_root
 
     elif 'data_roots' in dataset:
@@ -70,13 +70,13 @@ def convert_data_config(data_cfg):
                 if data_root.startswith(dataroot_prefix):
                     # avoid cvt './data/imagenet' ->
                     # openmmlab:s3://openmmlab/datasets/classification//imagenet
-                    if data_root.startswith(dataroot_prefix + '/'):
-                        dataroot_prefix = dataroot_prefix + '/'
+                    if data_root.startswith(f'{dataroot_prefix}/'):
+                        dataroot_prefix = f'{dataroot_prefix}/'
                     data_root = data_root.replace(dataroot_prefix,
                                                   ceph_dataroot_prefix)
                     # add '/' at the end
                     if not data_root.endswith('/'):
-                        data_root = data_root + '/'
+                        data_root = f'{data_root}/'
                     data_roots[k] = data_root
         dataset['data_roots'] = data_roots
 
@@ -88,14 +88,30 @@ def convert_data_config(data_cfg):
         for pipeline in pipelines:
             type_ = pipeline['type']
             # only change mmcv(mmcls)'s loading config
-            if type_ == 'mmcls.LoadImageFromFile':
-                pipeline['file_client_args'] = dict(backend='petrel')
+            if type_ == 'CompositeFg':
+                fg_dir_path = pipeline['fg_dirs']
+                for i, fg in enumerate(fg_dir_path):
+                    for dataroot_prefix in local_dataroot_prefix:
+                        if fg.startswith(f'{dataroot_prefix}/'):
+                            dataroot_prefix = f'{dataroot_prefix}/'
+                        fg = fg.replace(dataroot_prefix, ceph_dataroot_prefix)
+                        pipeline['fg_dirs'][i] = fg
+
+                alpha_dir_path = pipeline['alpha_dirs']
+                for i, alpha_dir in enumerate(alpha_dir_path):
+                    for dataroot_prefix in local_dataroot_prefix:
+                        if alpha_dir.startswith(f'{dataroot_prefix}/'):
+                            dataroot_prefix = f'{dataroot_prefix}/'
+                        alpha_dir = alpha_dir.replace(dataroot_prefix,
+                                                      ceph_dataroot_prefix)
+                        pipeline['alpha_dirs'][i] = alpha_dir
+
             elif type_ == 'LoadMask':
                 if 'mask_list_file' in pipeline['mask_config']:
                     local_mask_path = pipeline['mask_config']['mask_list_file']
                     for dataroot_prefix in local_dataroot_prefix:
-                        if local_mask_path.startswith(dataroot_prefix + '/'):
-                            dataroot_prefix = dataroot_prefix + '/'
+                        if local_mask_path.startswith(f'{dataroot_prefix}/'):
+                            dataroot_prefix = f'{dataroot_prefix}/'
                         local_mask_path = local_mask_path.replace(
                             dataroot_prefix, ceph_dataroot_prefix)
                     pipeline['mask_config']['mask_list_file'] = local_mask_path
@@ -107,30 +123,14 @@ def convert_data_config(data_cfg):
             elif type_ == 'RandomLoadResizeBg':
                 bg_dir_path = pipeline['bg_dir']
                 for dataroot_prefix in local_dataroot_prefix:
-                    if bg_dir_path.startswith(dataroot_prefix + '/'):
-                        dataroot_prefix = dataroot_prefix + '/'
+                    if bg_dir_path.startswith(f'{dataroot_prefix}/'):
+                        dataroot_prefix = f'{dataroot_prefix}/'
                     bg_dir_path = bg_dir_path.replace(dataroot_prefix,
                                                       ceph_dataroot_prefix)
                     bg_dir_path = bg_dir_path.replace(repo_name, 'detection')
                 pipeline['bg_dir'] = bg_dir_path
-            elif type_ == 'CompositeFg':
-                fg_dir_path = pipeline['fg_dirs']
-                for i, fg in enumerate(fg_dir_path):
-                    for dataroot_prefix in local_dataroot_prefix:
-                        if fg.startswith(dataroot_prefix + '/'):
-                            dataroot_prefix = dataroot_prefix + '/'
-                        fg = fg.replace(dataroot_prefix, ceph_dataroot_prefix)
-                        pipeline['fg_dirs'][i] = fg
-
-                alpha_dir_path = pipeline['alpha_dirs']
-                for i, alpha_dir in enumerate(alpha_dir_path):
-                    for dataroot_prefix in local_dataroot_prefix:
-                        if alpha_dir.startswith(dataroot_prefix + '/'):
-                            dataroot_prefix = dataroot_prefix + '/'
-                        alpha_dir = alpha_dir.replace(dataroot_prefix,
-                                                      ceph_dataroot_prefix)
-                        pipeline['alpha_dirs'][i] = alpha_dir
-
+            elif type_ == 'mmcls.LoadImageFromFile':
+                pipeline['file_client_args'] = dict(backend='petrel')
     data_cfg_updated['dataset'] = dataset
     return data_cfg_updated
 
@@ -146,9 +146,9 @@ def update_ceph_config(filename, args, dry_run=False):
         work_dir = f'{args.ceph_path}/{args.work_dir_prefix}'
         save_dir = f'{args.ceph_path}/{args.save_dir_prefix}'
         if not work_dir.endswith('/'):
-            work_dir = work_dir + '/'
+            work_dir = f'{work_dir}/'
         if not save_dir.endswith('/'):
-            save_dir = save_dir + '/'
+            save_dir = f'{save_dir}/'
     else:
         # disable save local results to ceph
         work_dir = args.work_dir_prefix
@@ -232,12 +232,10 @@ def update_ceph_config(filename, args, dry_run=False):
 
             # add tensorboard config
             if args.add_tensorboard:
-                find_inherit = False
-                for vis_cfg in config['vis_backends']:
-                    if vis_cfg['type'] == 'TensorboardGenVisBackend':
-                        find_inherit = True
-                        break
-
+                find_inherit = any(
+                    vis_cfg['type'] == 'TensorboardGenVisBackend'
+                    for vis_cfg in config['vis_backends']
+                )
                 if not find_inherit:
                     tensorboard_cfg = dict(type='TensorboardGenVisBackend')
                     config['vis_backends'].append(tensorboard_cfg)
@@ -249,13 +247,8 @@ def update_ceph_config(filename, args, dry_run=False):
             # file_client_args = dict(backend='petrel')
 
             for name, hooks in config['default_hooks'].items():
-                if name == 'logger':
+                if name in ['logger', 'checkpoint']:
                     hooks['out_dir'] = save_dir
-                    # hooks['file_client_args'] = file_client_args
-                elif name == 'checkpoint':
-                    hooks['out_dir'] = save_dir
-                    # hooks['file_client_args'] = file_client_args
-
         # 4. save
         config.dump(config.filename)
         return True

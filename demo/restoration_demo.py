@@ -21,8 +21,7 @@ def parse_args():
     parser.add_argument('--device', type=int, default=0, help='CUDA device id')
     parser.add_argument(
         '--ref-path', default=None, help='path to reference image file')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():

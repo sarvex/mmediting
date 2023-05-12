@@ -39,11 +39,10 @@ extensions = [
     'sphinx_copybutton',
     'sphinx_tabs.tabs',
     'myst_parser',
+    'notfound.extension',
+    'autoapi.extension',
 ]
 
-extensions.append('notfound.extension')  # enable customizing not-found page
-
-extensions.append('autoapi.extension')
 autoapi_type = 'python'
 autoapi_dirs = ['../../mmedit']
 autoapi_add_toctree_entry = False
@@ -153,7 +152,7 @@ def builder_inited_handler(app):
 
 
 def skip_member(app, what, name, obj, skip, options):
-    if what == 'package' or what == 'module':
+    if what in ['package', 'module']:
         skip = True
     return skip
 

@@ -19,12 +19,10 @@ def get_size_from_scale(input_size, scale_factor):
         output_shape (list[int]): The size of the output image.
     """
 
-    output_shape = [
+    return [
         int(np.ceil(scale * shape))
         for (scale, shape) in zip(scale_factor, input_size)
     ]
-
-    return output_shape
 
 
 def get_scale_from_size(input_size, output_size):
@@ -38,12 +36,10 @@ def get_scale_from_size(input_size, output_size):
         scale (list[float]): The scale factor of each dimension.
     """
 
-    scale = [
+    return [
         1.0 * output_shape / input_shape
         for (input_shape, output_shape) in zip(input_size, output_size)
     ]
-
-    return scale
 
 
 def _cubic(x):
@@ -61,13 +57,9 @@ def _cubic(x):
     x_abs_sq = x_abs**2
     x_abs_cu = x_abs_sq * x_abs
 
-    # if |x| <= 1: y = 1.5|x|^3 - 2.5|x|^2 + 1
-    # if 1 < |x| <= 2: -0.5|x|^3 + 2.5|x|^2 - 4|x| + 2
-    f = (1.5 * x_abs_cu - 2.5 * x_abs_sq + 1) * (x_abs <= 1) + (
-        -0.5 * x_abs_cu + 2.5 * x_abs_sq - 4 * x_abs + 2) * ((1 < x_abs) &
-                                                             (x_abs <= 2))
-
-    return f
+    return (1.5 * x_abs_cu - 2.5 * x_abs_sq + 1) * (x_abs <= 1) + (
+        -0.5 * x_abs_cu + 2.5 * x_abs_sq - 4 * x_abs + 2
+    ) * ((x_abs > 1) & (x_abs <= 2))
 
 
 def get_weights_indices(input_length, output_length, scale, kernel,
@@ -158,11 +150,10 @@ def resize_along_dim(img_in, weights, indices, dim):
             img_slice = img_in[:, ind]
             img_out[:, i] = np.sum(np.squeeze(img_slice, axis=1) * w.T, axis=1)
 
-    if img_in.dtype == np.uint8:
-        img_out = np.clip(img_out, 0, 255)
-        return np.around(img_out).astype(np.uint8)
-    else:
+    if img_in.dtype != np.uint8:
         return img_out
+    img_out = np.clip(img_out, 0, 255)
+    return np.around(img_out).astype(np.uint8)
 
 
 @TRANSFORMS.register_module()

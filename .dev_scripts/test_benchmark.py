@@ -77,20 +77,19 @@ def parse_args():
         type=str,
         default='',
         help='Path of algorithm list to load')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def create_test_job_batch(commands, model_info, args, port, script_name):
-    config_http_prefix_blob = ('https://github.com/open-mmlab/mmediting/'
-                               'blob/master/')
-    config_http_prefix_tree = ('https://github.com/open-mmlab/mmediting/'
-                               'tree/master/')
     fname = model_info.name
 
     config = model_info.config
     if config.startswith('http'):
+        config_http_prefix_blob = ('https://github.com/open-mmlab/mmediting/'
+                                   'blob/master/')
         config = config.replace(config_http_prefix_blob, './')
+        config_http_prefix_tree = ('https://github.com/open-mmlab/mmediting/'
+                                   'tree/master/')
         config = config.replace(config_http_prefix_tree, './')
     if args.use_ceph_config:
         config = config.replace('configs', 'configs_ceph')
@@ -195,11 +194,12 @@ def test(args):
     commands = []
     if args.models:
         patterns = [re.compile(pattern) for pattern in args.models]
-        filter_models = {}
-        for k, v in models.items():
-            if any([re.match(pattern, k) for pattern in patterns]):
-                filter_models[k] = v
-        if len(filter_models) == 0:
+        filter_models = {
+            k: v
+            for k, v in models.items()
+            if any(re.match(pattern, k) for pattern in patterns)
+        }
+        if not filter_models:
             print('No model found, please specify models in:')
             print('\n'.join(models.keys()))
             return
@@ -355,11 +355,12 @@ def summary(args):
 
     if args.models:
         patterns = [re.compile(pattern) for pattern in args.models]
-        filter_models = {}
-        for k, v in models.items():
-            if any([re.match(pattern, k) for pattern in patterns]):
-                filter_models[k] = v
-        if len(filter_models) == 0:
+        filter_models = {
+            k: v
+            for k, v in models.items()
+            if any(re.match(pattern, k) for pattern in patterns)
+        }
+        if not filter_models:
             print('No model found, please specify models in:')
             print('\n'.join(models.keys()))
             return

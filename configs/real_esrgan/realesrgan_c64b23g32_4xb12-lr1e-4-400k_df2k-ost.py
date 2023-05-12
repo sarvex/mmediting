@@ -18,12 +18,14 @@ model = dict(
         mid_channels=64,
         num_blocks=23,
         growth_channels=32,
-        upscale_factor=scale),
+        upscale_factor=scale,
+    ),
     discriminator=dict(
         type='UNetDiscriminatorWithSpectralNorm',
         in_channels=3,
         mid_channels=64,
-        skip_connection=True),
+        skip_connection=True,
+    ),
     pixel_loss=dict(type='L1Loss', loss_weight=1.0, reduction='mean'),
     perceptual_loss=dict(
         type='PerceptualLoss',
@@ -37,24 +39,27 @@ model = dict(
         vgg_type='vgg19',
         perceptual_weight=1.0,
         style_weight=0,
-        norm_img=False),
+        norm_img=False,
+    ),
     gan_loss=dict(
         type='GANLoss',
         gan_type='vanilla',
         loss_weight=1e-1,
         real_label_val=1.0,
-        fake_label_val=0),
+        fake_label_val=0,
+    ),
     is_use_sharpened_gt_in_pixel=True,
     is_use_sharpened_gt_in_percep=True,
     is_use_sharpened_gt_in_gan=False,
     is_use_ema=True,
     train_cfg=dict(start_iter=1000000),
-    test_cfg=dict(),
+    test_cfg={},
     data_preprocessor=dict(
         type='EditDataPreprocessor',
-        mean=[0., 0., 0.],
-        std=[255., 255., 255.],
-    ))
+        mean=[0.0, 0.0, 0.0],
+        std=[255.0, 255.0, 255.0],
+    ),
+)
 
 train_cfg = dict(
     _delete_=True,

@@ -45,14 +45,15 @@ class EG3DInferencer(BaseMMEditInferencer):
             ForwardInputs: The preprocessed inputs and data samples.
         """
         if isinstance(inputs, Sequence):
-            assert all([type(inputs[0]) == type(lab) for lab in inputs
-                        ]), ('All label inputs must have the same type.')
+            assert all(
+                type(inputs[0]) == type(lab) for lab in inputs
+            ), 'All label inputs must have the same type.'
             if isinstance(inputs[0], list):
                 for lab in inputs:
-                    assert all([isinstance(l_, float) for l_ in lab])
+                    assert all(isinstance(l_, float) for l_ in lab)
                 inputs = np.array(inputs).astype(np.float32)
             elif isinstance(inputs[0], np.ndarray):
-                assert all([lab.ndim == 1 for lab in inputs])
+                assert all(lab.ndim == 1 for lab in inputs)
                 inputs = [input_.astype(np.float32) for input_ in inputs]
             else:
                 raise ValueError(
@@ -120,15 +121,13 @@ class EG3DInferencer(BaseMMEditInferencer):
                 output_dict['ray_origins'].append(ray_origins)
                 output_dict['ray_directions'].append(ray_directions)
 
-            for k in output_dict.keys():
+            for k in output_dict:
                 output_dict[k] = torch.stack(output_dict[k], dim=0)
 
             return output_dict
 
         num_batches = inputs['num_batches']
-        output_list = self.model.interpolation(num_images, num_batches,
-                                               interpolation)
-        return output_list
+        return self.model.interpolation(num_images, num_batches, interpolation)
 
     def visualize(self,
                   preds: Union[PredType, List[PredType]],
@@ -159,7 +158,7 @@ class EG3DInferencer(BaseMMEditInferencer):
                 'imageio-ffmpeg\' to save video.')
 
         os.makedirs(result_out_dir, exist_ok=True)
-        assert vis_mode.upper() in ['BOTH', 'DEPTH', 'IMG']
+        assert vis_mode.upper() in {'BOTH', 'DEPTH', 'IMG'}
         if vis_mode.upper() == 'BOTH':
             vis_mode = ['DEPTH', 'IMG']
         if not isinstance(vis_mode, list):
@@ -323,14 +322,14 @@ class EG3DInferencer(BaseMMEditInferencer):
         Returns:
             Dict[str, torch.Tensor]: Inference results as a dict.
         """
-        if isinstance(preds[0], dict):
-            keys = preds[0].keys()
-            outputs = defaultdict(list)
-            for pred in preds:
-                for k in keys:
-                    outputs[k].append(pred[k])
+        if not isinstance(preds[0], dict):
+            # directly return the dict
+            return preds
+        keys = preds[0].keys()
+        outputs = defaultdict(list)
+        for pred in preds:
             for k in keys:
-                outputs[k] = torch.stack(outputs[k], dim=0)
-            return outputs
-        # directly return the dict
-        return preds
+                outputs[k].append(pred[k])
+        for k in keys:
+            outputs[k] = torch.stack(outputs[k], dim=0)
+        return outputs

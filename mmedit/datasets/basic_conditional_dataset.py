@@ -120,14 +120,14 @@ class BasicConditionalDataset(BaseDataset):
                  classes: Union[str, Sequence[str], None] = None,
                  **kwargs):
         assert (ann_file or data_prefix or data_root), \
-            'One of `ann_file`, `data_root` and `data_prefix` must '\
-            'be specified.'
+                'One of `ann_file`, `data_root` and `data_prefix` must '\
+                'be specified.'
         if isinstance(data_prefix, str):
             data_prefix = dict(gt_path=expanduser(data_prefix))
 
         ann_file = expanduser(ann_file)
         metainfo = self._compat_classes(metainfo, classes)
-        self.extensions = tuple(set([i.lower() for i in extensions]))
+        self.extensions = tuple({i.lower() for i in extensions})
 
         super().__init__(
             # The base class requires string ann_file but this class doesn't
@@ -194,10 +194,7 @@ class BasicConditionalDataset(BaseDataset):
             raise TypeError('Only support \'json\' and \'txt\' as annotation.')
 
         def add_prefix(filename, prefix=''):
-            if not prefix:
-                return filename
-            else:
-                return file_backend.join_path(prefix, filename)
+            return filename if not prefix else file_backend.join_path(prefix, filename)
 
         data_list = []
         for filename, gt_label in samples:
@@ -240,9 +237,9 @@ class BasicConditionalDataset(BaseDataset):
             np.ndarray: categories for all images.
         """
 
-        gt_labels = np.array(
-            [self.get_data_info(i)['gt_label'] for i in range(len(self))])
-        return gt_labels
+        return np.array(
+            [self.get_data_info(i)['gt_label'] for i in range(len(self))]
+        )
 
     def get_cat_ids(self, idx: int) -> List[int]:
         """Get category id by index.
@@ -284,8 +281,7 @@ class BasicConditionalDataset(BaseDataset):
         if 'categories' in self._metainfo and 'classes' not in self._metainfo:
             categories = sorted(
                 self._metainfo['categories'], key=lambda x: x['id'])
-            self._metainfo['classes'] = tuple(
-                [cat['category_name'] for cat in categories])
+            self._metainfo['classes'] = tuple(cat['category_name'] for cat in categories)
 
     def __repr__(self):
         """Print the basic information of the dataset.
@@ -293,7 +289,7 @@ class BasicConditionalDataset(BaseDataset):
         Returns:
             str: Formatted string.
         """
-        head = 'Dataset ' + self.__class__.__name__
+        head = f'Dataset {self.__class__.__name__}'
         body = []
         if self._fully_initialized:
             body.append(f'Number of samples: \t{self.__len__()}')
@@ -309,15 +305,13 @@ class BasicConditionalDataset(BaseDataset):
 
         if len(self.pipeline.transforms) > 0:
             body.append('With transforms:')
-            for t in self.pipeline.transforms:
-                body.append(f'    {t}')
-
+            body.extend(f'    {t}' for t in self.pipeline.transforms)
         lines = [head] + [' ' * 4 + line for line in body]
         return '\n'.join(lines)
 
     def extra_repr(self) -> List[str]:
         """The extra repr information of the dataset."""
-        body = []
-        body.append(f'Annotation file: \t{self.ann_file}')
-        body.append(f'Prefix of images: \t{self.img_prefix}')
-        return body
+        return [
+            f'Annotation file: \t{self.ann_file}',
+            f'Prefix of images: \t{self.img_prefix}',
+        ]

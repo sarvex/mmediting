@@ -49,26 +49,22 @@ def collate_metrics(keys):
     Returns:
         dict: A dict of metrics.
     """
-    used_metrics = dict()
-    for idx, key in enumerate(keys):
-        if key in ['Model', 'Dataset', 'Training Resources', 'Download']:
-            continue
-        used_metrics[key] = idx
-    return used_metrics
+    return {
+        key: idx
+        for idx, key in enumerate(keys)
+        if key not in ['Model', 'Dataset', 'Training Resources', 'Download']
+    }
 
 
 def found_table(lines, i):
     if i + 1 >= len(lines):
         return False
-    if i - 2 < 0 or 'SKIP THIS TABLE' in lines[i - 2]:
+    if i < 2 or 'SKIP THIS TABLE' in lines[i - 2]:
         return False
     if lines[i][0] != '|':
         return False
 
-    for c in ['| :', '|:', '|-']:
-        if c in lines[i + 1]:
-            return True
-    return False
+    return any(c in lines[i + 1] for c in ['| :', '|:', '|-'])
 
 
 def modelindex_to_dict(model):
@@ -81,8 +77,6 @@ def modelindex_to_dict(model):
         if model.metadata is not None:
             result['Metadata'] = model.metadata.data
         if model.results is not None:
-            results_list = []
-            for r in model.results:
-                results_list.append(r.data)
+            results_list = [r.data for r in model.results]
             result['Results'] = results_list
     return result

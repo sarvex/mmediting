@@ -66,7 +66,7 @@ class PackEditInputs(BaseTransform):
         """
 
         # prepare inputs
-        inputs = dict()
+        inputs = {}
         for k in self.keys:
             value = results.get(k, None)
             if value is not None:
@@ -103,6 +103,4 @@ class PackEditInputs(BaseTransform):
 
     def __repr__(self) -> str:
 
-        repr_str = self.__class__.__name__
-
-        return repr_str
+        return self.__class__.__name__

@@ -154,10 +154,7 @@ class BasicImageDataset(BaseDataset):
         self.search_key = search_key
         self.filename_tmpl = filename_tmpl
         self.use_ann_file = (ann_file != '')
-        if backend_args is None:
-            self.backend_args = None
-        else:
-            self.backend_args = backend_args.copy()
+        self.backend_args = None if backend_args is None else backend_args.copy()
         self.img_suffix = img_suffix
         self.recursive = recursive
         self.file_backend = get_file_backend(
@@ -205,12 +202,11 @@ class BasicImageDataset(BaseDataset):
         """
 
         path_list = []
-        if self.use_ann_file:
-            path_list = self._get_path_list_from_ann()
-        else:
-            path_list = self._get_path_list_from_folder()
-
-        return path_list
+        return (
+            self._get_path_list_from_ann()
+            if self.use_ann_file
+            else self._get_path_list_from_folder()
+        )
 
     def _get_path_list_from_ann(self):
         """Get list of paths from annotation file.

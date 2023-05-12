@@ -50,8 +50,7 @@ def parse_args():
         default='{:08d}.png',
         help='template of the file names')
     parser.add_argument('--device', type=int, default=0, help='CUDA device id')
-    args = parser.parse_args()
-    return args
+    return parser.parse_args()
 
 
 def main():

@@ -58,13 +58,12 @@ class VideoRestorationInferencer(BaseMMEditInferencer):
             for frame in video_reader:
                 data['img'].append(np.flip(frame, axis=2))
 
-            # remove the data loading pipeline
-            tmp_pipeline = []
-            for pipeline in test_pipeline:
-                if pipeline['type'] not in [
-                        'GenerateSegmentIndices', 'LoadImageFromFile'
-                ]:
-                    tmp_pipeline.append(pipeline)
+            tmp_pipeline = [
+                pipeline
+                for pipeline in test_pipeline
+                if pipeline['type']
+                not in ['GenerateSegmentIndices', 'LoadImageFromFile']
+            ]
             test_pipeline = tmp_pipeline
         else:
             # the first element in the pipeline must be
@@ -77,7 +76,7 @@ class VideoRestorationInferencer(BaseMMEditInferencer):
             # specify start_idx and filename_tmpl
             test_pipeline[0]['start_idx'] = self.extra_parameters['start_idx']
             test_pipeline[0]['filename_tmpl'] = \
-                self.extra_parameters['filename_tmpl']
+                    self.extra_parameters['filename_tmpl']
 
             # prepare data
             sequence_length = len(glob.glob(osp.join(video, '*')))
@@ -92,9 +91,7 @@ class VideoRestorationInferencer(BaseMMEditInferencer):
         # compose the pipeline
         test_pipeline = Compose(test_pipeline)
         data = test_pipeline(data)
-        results = data['inputs'].unsqueeze(0) / 255.0  # in cpu
-
-        return results
+        return data['inputs'].unsqueeze(0) / 255.0
 
     def forward(self, inputs: InputsType) -> PredType:
         """Forward the inputs to the model.
@@ -120,21 +117,22 @@ class VideoRestorationInferencer(BaseMMEditInferencer):
                     result.append(
                         self.model(inputs=data_i, mode='tensor').cpu())
                 result = torch.stack(result, dim=1)
-            else:  # recurrent framework
-                if self.extra_parameters['max_seq_len'] is None:
-                    result = self.model(
-                        inputs=inputs.to(self.device), mode='tensor').cpu()
-                else:
-                    result = []
-                    for i in range(0, inputs.size(1),
-                                   self.extra_parameters['max_seq_len']):
-                        result.append(
-                            self.model(
-                                inputs=inputs[:, i:i + self.
-                                              extra_parameters['max_seq_len']].
-                                to(self.device),
-                                mode='tensor').cpu())
-                    result = torch.cat(result, dim=1)
+            elif self.extra_parameters['max_seq_len'] is None:
+                result = self.model(
+                    inputs=inputs.to(self.device), mode='tensor').cpu()
+            else:
+                result = [
+                    self.model(
+                        inputs=inputs[
+                            :, i : i + self.extra_parameters['max_seq_len']
+                        ].to(self.device),
+                        mode='tensor',
+                    ).cpu()
+                    for i in range(
+                        0, inputs.size(1), self.extra_parameters['max_seq_len']
+                    )
+                ]
+                result = torch.cat(result, dim=1)
         return result
 
     def visualize(self,

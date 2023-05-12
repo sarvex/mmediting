@@ -52,12 +52,15 @@ class InpaintingGradio:
         self.device = device
         self.extra_parameters = extra_parameters
         self.seed = seed
-        if model_name or (model_config and model_ckpt):
+        if model_name or model_config and model_ckpt:
             inpainting_kwargs = {}
-            inpainting_kwargs.update(
-                self._get_inpainting_kwargs(model_name, model_setting,
-                                            model_config, model_ckpt,
-                                            extra_parameters))
+            inpainting_kwargs |= self._get_inpainting_kwargs(
+                model_name,
+                model_setting,
+                model_config,
+                model_ckpt,
+                extra_parameters,
+            )
             self.inference = InpaintingInferencer(
                 device=device, seed=seed, **inpainting_kwargs)
 
@@ -90,16 +93,16 @@ class InpaintingGradio:
                 'model_name and model_ckpt should not be None when '
                 'model_config was used', self.error_color, 'error')
             return
-        inpainting_kwargs.update(
-            self._get_inpainting_kwargs(model_name, model_setting,
-                                        model_config, model_ckpt,
-                                        extra_parameters))
+        inpainting_kwargs |= self._get_inpainting_kwargs(
+            model_name, model_setting, model_config, model_ckpt, extra_parameters
+        )
         try:
             self.inference = InpaintingInferencer(
                 device=device, seed=seed, **inpainting_kwargs)
         except Exception as e:
-            self.send_notification('inference Exception:' + str(e),
-                                   self.error_color, 'error')
+            self.send_notification(
+                f'inference Exception:{str(e)}', self.error_color, 'error'
+            )
             traceback.print_exc()
             return
         self.send_notification('Model config Finished!', self.success_color,
@@ -112,8 +115,10 @@ class InpaintingGradio:
             return_dict = json.loads(input_text)
         except Exception as e:
             InpaintingGradio.send_notification(
-                'Convert string to dict Exception:' + str(e),
-                InpaintingGradio.error_color, 'error')
+                f'Convert string to dict Exception:{str(e)}',
+                InpaintingGradio.error_color,
+                'error',
+            )
         return return_dict
 
     @staticmethod
@@ -127,9 +132,10 @@ class InpaintingGradio:
                                                InpaintingGradio.error_color,
                                                'error')
             raise Exception('module mmedit not found')
-        package_path = out[out.find('Location') +
-                           len('Location: '):].split('\r\n')[0] + os.sep
-        return package_path
+        return (
+            out[out.find('Location') + len('Location: ') :].split('\r\n')[0]
+            + os.sep
+        )
 
     def get_model_config(self, model_name: str) -> Dict:
         """Get the model configuration including model config and checkpoint
@@ -140,29 +146,28 @@ class InpaintingGradio:
         Returns:
             dict: Model configuration.
         """
-        if model_name not in self.inpainting_supported_models:
-            self.send_notification(f'Model {model_name} is not supported.',
-                                   self.error_color, 'error')
-            raise ValueError(f'Model {model_name} is not supported.')
-        else:
+        if model_name in self.inpainting_supported_models:
             return self.inpainting_supported_models_cfg[model_name]
+        self.send_notification(f'Model {model_name} is not supported.',
+                               self.error_color, 'error')
+        raise ValueError(f'Model {model_name} is not supported.')
 
     @staticmethod
     def init_inference_supported_models_cfg() -> None:
-        if not InpaintingGradio.inpainting_supported_models_cfg_inited:
-            InpaintingGradio.pkg_path = InpaintingGradio.get_package_path()
-            # all_cfgs_dir = osp.join(osp.dirname(__file__), '..', 'configs')
-            all_cfgs_dir = osp.join(InpaintingGradio.pkg_path, 'configs')
-            for model_name in InpaintingGradio.inpainting_supported_models:
-                meta_file_dir = osp.join(all_cfgs_dir, model_name,
-                                         'metafile.yml')
-                with open(meta_file_dir, 'r') as stream:
-                    parsed_yaml = yaml.safe_load(stream)
-                InpaintingGradio.inpainting_supported_models_cfg[
-                    model_name] = {}
-                InpaintingGradio.inpainting_supported_models_cfg[model_name][
-                    'settings'] = parsed_yaml['Models']  # noqa
-            InpaintingGradio.inpainting_supported_models_cfg_inited = True
+        if InpaintingGradio.inpainting_supported_models_cfg_inited:
+            return
+        InpaintingGradio.pkg_path = InpaintingGradio.get_package_path()
+        # all_cfgs_dir = osp.join(osp.dirname(__file__), '..', 'configs')
+        all_cfgs_dir = osp.join(InpaintingGradio.pkg_path, 'configs')
+        for model_name in InpaintingGradio.inpainting_supported_models:
+            meta_file_dir = osp.join(all_cfgs_dir, model_name,
+                                     'metafile.yml')
+            with open(meta_file_dir, 'r') as stream:
+                parsed_yaml = yaml.safe_load(stream)
+            InpaintingGradio.inpainting_supported_models_cfg[model_name] = {
+                'settings': parsed_yaml['Models']
+            }
+        InpaintingGradio.inpainting_supported_models_cfg_inited = True
 
     def _get_inpainting_kwargs(self, model_name: Optional[str],
                                model_setting: Optional[int],
@@ -178,8 +183,7 @@ class InpaintingGradio:
             setting_to_use = 0
             if model_setting:
                 if isinstance(model_setting, str):
-                    model_setting = int(
-                        model_setting[0:model_setting.find(' - ')])
+                    model_setting = int(model_setting[:model_setting.find(' - ')])
                 setting_to_use = model_setting
             else:
                 model_setting = 0
@@ -296,11 +300,12 @@ class InpaintingGradio:
                 settings = InpaintingGradio.inpainting_supported_models_cfg[
                     model_name]['settings']
                 return {
-                    input_setting:
-                    gr.update(choices=[
-                        str(i) + ' - ' + settings[i]['Config']
-                        for i in range(len(settings))
-                    ])
+                    input_setting: gr.update(
+                        choices=[
+                            f'{str(i)} - ' + settings[i]['Config']
+                            for i in range(len(settings))
+                        ]
+                    )
                 }
 
             input_model_dropdown.change(

@@ -16,7 +16,8 @@ model = dict(
         in_channels=3,
         out_channels=3,
         mid_channels=64,
-        num_blocks=(16, 16, 8, 4)),
+        num_blocks=(16, 16, 8, 4),
+    ),
     extractor=dict(type='LTE'),
     transformer=dict(type='SearchTransformer'),
     discriminator=dict(type='TTSRDiscriminator', in_size=160),
@@ -27,25 +28,29 @@ model = dict(
         vgg_type='vgg19',
         perceptual_weight=1e-2,
         style_weight=0,
-        criterion='mse'),
+        criterion='mse',
+    ),
     transferal_perceptual_loss=dict(
         type='TransferalPerceptualLoss',
         loss_weight=1e-2,
         use_attention=False,
-        criterion='mse'),
+        criterion='mse',
+    ),
     gan_loss=dict(
         type='GANLoss',
         gan_type='vanilla',
         loss_weight=1e-3,
         real_label_val=1.0,
-        fake_label_val=0),
+        fake_label_val=0,
+    ),
     train_cfg=dict(pixel_init=25000, disc_repeat=2),
-    test_cfg=dict(),
+    test_cfg={},
     data_preprocessor=dict(
         type='EditDataPreprocessor',
         mean=[127.5, 127.5, 127.5],
         std=[127.5, 127.5, 127.5],
-    ))
+    ),
+)
 
 train_cfg = dict(
     type='IterBasedTrainLoop', max_iters=500_000, val_interval=5000)

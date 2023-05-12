@@ -43,24 +43,19 @@ class TranslationInferencer(BaseMMEditInferencer):
 
         # prepare data
         # dirty code to deal with test data pipeline
-        data = dict()
-        data['pair_path'] = img
-        data['img_A_path'] = img
-        data['img_B_path'] = img
+        data = {'pair_path': img, 'img_A_path': img, 'img_B_path': img}
         data = collate([test_pipeline(data)])
         data = self.model.data_preprocessor(data, False)
 
         inputs_dict = data['inputs']
-        results = inputs_dict[f'img_{source_domain}']
-        return results
+        return inputs_dict[f'img_{source_domain}']
 
     def forward(self, inputs: InputsType) -> PredType:
         """Forward the inputs to the model."""
         with torch.no_grad():
             results = self.model(
                 inputs, test_mode=True, target_domain=self.target_domain)
-        output = results['target']
-        return output
+        return results['target']
 
     def visualize(self,
                   preds: PredType,

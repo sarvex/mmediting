@@ -153,10 +153,7 @@ class BasicFramesDataset(BaseDataset):
         self.search_key = search_key
         self.filename_tmpl = filename_tmpl
         self.use_ann_file = (ann_file != '')
-        if backend_args is None:
-            self.backend_args = None
-        else:
-            self.backend_args = backend_args.copy()
+        self.backend_args = None if backend_args is None else backend_args.copy()
         self.depth = depth
         self.seq_lens = dict(fixed_seq_len=fixed_seq_len)
         self.num_input_frames = num_input_frames
@@ -221,12 +218,11 @@ class BasicFramesDataset(BaseDataset):
             list[str]: A list of paths.
         """
 
-        if self.use_ann_file:
-            path_list = self._get_path_list_from_ann()
-        else:
-            path_list = self._get_path_list_from_folder(depth=self.depth)
-
-        return path_list
+        return (
+            self._get_path_list_from_ann()
+            if self.use_ann_file
+            else self._get_path_list_from_folder(depth=self.depth)
+        )
 
     def _get_path_list_from_ann(self):
         """Get list of paths from annotation file.
@@ -289,8 +285,7 @@ class BasicFramesDataset(BaseDataset):
         path_list = []
         if sub_folder:
             folder = osp.join(folder, sub_folder)
-        listdir = list(self.file_backend.list_dir_or_file(dir_path=folder))
-        listdir.sort()
+        listdir = sorted(self.file_backend.list_dir_or_file(dir_path=folder))
         for path in listdir:
             basename, ext = osp.splitext(path)
             if not (sub_folder or self.seq_lens['fixed_seq_len']):
@@ -342,6 +337,4 @@ class BasicFramesDataset(BaseDataset):
         files.sort()
         tmpl = self.filename_tmpl[key]
         files = [tmpl.format(file) for file in files]
-        paths = [osp.join(folder, file) for file in files]
-
-        return paths
+        return [osp.join(folder, file) for file in files]

@@ -96,14 +96,10 @@ class CIFAR10(BasicConditionalDataset):
 
         dist.barrier()
         assert self._check_integrity(), \
-            'Download failed or shared storage is unavailable. Please ' \
-            f'download the dataset manually through {self.url}.'
+                'Download failed or shared storage is unavailable. Please ' \
+                f'download the dataset manually through {self.url}.'
 
-        if not self.test_mode:
-            downloaded_list = self.train_list
-        else:
-            downloaded_list = self.test_list
-
+        downloaded_list = self.train_list if not self.test_mode else self.test_list
         imgs = []
         gt_labels = []
 
@@ -171,5 +167,4 @@ class CIFAR10(BasicConditionalDataset):
 
     def extra_repr(self) -> List[str]:
         """The extra repr information of the dataset."""
-        body = [f"Prefix of data: \t{self.data_prefix['root']}"]
-        return body
+        return [f"Prefix of data: \t{self.data_prefix['root']}"]

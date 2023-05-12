@@ -17,9 +17,9 @@ def parse_job_list(job_list) -> Tuple[list, list]:
     Returns:
         Tuple[list, list]: Job ID list and Job name list.
     """
-    assert all([
+    assert all(
         ' @ ' in job for job in job_list
-    ]), ('Each line of job list must be formatted like \'JOBID @ JOBNAME\'.')
+    ), 'Each line of job list must be formatted like \'JOBID @ JOBNAME\'.'
     job_id_list, job_name_list = [], []
     for job_info in job_list:
         job_id, job_name = job_info.split(' @ ')

@@ -310,12 +310,12 @@ class RandomAffine(BaseTransform):
             self.degrees = (-degrees, degrees)
         else:
             assert isinstance(degrees, tuple) and len(degrees) == 2, \
-                'degrees should be a tuple and it must be of length 2.'
+                    'degrees should be a tuple and it must be of length 2.'
             self.degrees = degrees
 
         if translate is not None:
             assert isinstance(translate, tuple) and len(translate) == 2, \
-                'translate should be a tuple and it must be of length 2.'
+                    'translate should be a tuple and it must be of length 2.'
             for t in translate:
                 assert 0.0 <= t <= 1.0, ('translation values should be '
                                          'between 0 and 1.')
@@ -323,24 +323,23 @@ class RandomAffine(BaseTransform):
 
         if scale is not None:
             assert isinstance(scale, tuple) and len(scale) == 2, \
-                'scale should be a tuple and it must be of length 2.'
+                    'scale should be a tuple and it must be of length 2.'
             for s in scale:
                 assert s > 0, 'scale values should be positive.'
         self.scale = scale
 
-        if shear is not None:
-            if isinstance(shear, numbers.Number):
-                assert shear >= 0, ('If shear is a single number, '
-                                    'it must be positive.')
-                self.shear = (-shear, shear)
-            else:
-                assert isinstance(shear, tuple) and len(shear) == 2, \
-                    'shear should be a tuple and it must be of length 2.'
-                # X-Axis and Y-Axis shear with (min, max)
-                self.shear = shear
-        else:
+        if shear is None:
             self.shear = shear
 
+        elif isinstance(shear, numbers.Number):
+            assert shear >= 0, ('If shear is a single number, '
+                                'it must be positive.')
+            self.shear = (-shear, shear)
+        else:
+            assert isinstance(shear, tuple) and len(shear) == 2, \
+                    'shear should be a tuple and it must be of length 2.'
+            # X-Axis and Y-Axis shear with (min, max)
+            self.shear = shear
         if flip_ratio is not None:
             assert isinstance(flip_ratio,
                               float), 'flip_ratio should be a float.'
@@ -372,11 +371,7 @@ class RandomAffine(BaseTransform):
         else:
             scale = (1.0, 1.0)
 
-        if shears is not None:
-            shear = np.random.uniform(shears[0], shears[1])
-        else:
-            shear = 0.0
-
+        shear = np.random.uniform(shears[0], shears[1]) if shears is not None else 0.0
         # Because `flip` is used as a multiplier in line 479 and 480,
         # so -1 stands for flip and 1 stands for no flip. Thus `flip`
         # should be an 'inverse' flag as the result of the comparison.
@@ -526,7 +521,7 @@ class RandomMaskDilation(BaseTransform):
             results[k], d_kernel = self._random_dilate(results[k])
             if len(results[k].shape) == 2:
                 results[k] = np.expand_dims(results[k], axis=2)
-            results[k + '_dilate_kernel_size'] = d_kernel
+            results[f'{k}_dilate_kernel_size'] = d_kernel
 
         return results
 

@@ -37,7 +37,7 @@ class ColorizationInferencer(BaseMMEditInferencer):
         # prepare data
         data = dict(img_path=img)
         _data = test_pipeline(data)
-        data = dict()
+        data = {}
         data['inputs'] = _data['inputs'] / 255.0
         data = collate([data])
         data['data_samples'] = [_data['data_samples']]
@@ -45,7 +45,7 @@ class ColorizationInferencer(BaseMMEditInferencer):
             data['data_samples'][0].set_data({'empty_box': True})
         if not data['data_samples'][0].empty_box:
             data['data_samples'][0].cropped_img.data = \
-                data['data_samples'][0].cropped_img.data / 255.0
+                    data['data_samples'][0].cropped_img.data / 255.0
         if 'cuda' in str(self.device):
             data['inputs'] = data['inputs'].cuda()
             data['data_samples'][0] = data['data_samples'][0].cuda()

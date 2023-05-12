@@ -106,7 +106,7 @@ def main():
         val = int(val) if val.isdigit() else val
         user_defined[key[2:]] = val
 
-    user_defined.update(vars(args))
+    user_defined |= vars(args)
 
     if args.print_supported_models:
         inference_supported_models = MMEdit.get_inference_supported_models()

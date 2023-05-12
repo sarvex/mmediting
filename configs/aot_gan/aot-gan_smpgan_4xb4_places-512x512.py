@@ -75,7 +75,9 @@ train_pipeline = [
             io_backend='local',
             flag='unchanged',
             color_type='unchanged',
-            file_client_kwargs=dict())),
+            file_client_kwargs={},
+        ),
+    ),
     dict(
         type='RandomResizedCrop',
         keys=['gt'],
@@ -87,7 +89,8 @@ train_pipeline = [
         keys=['mask'],
         scale=input_shape,
         keep_ratio=False,
-        interpolation='nearest'),
+        interpolation='nearest',
+    ),
     dict(type='RandomRotation', keys=['mask'], degrees=(0.0, 45.0)),
     dict(
         type='ColorJitter',
@@ -95,7 +98,8 @@ train_pipeline = [
         brightness=0.5,
         contrast=0.5,
         saturation=0.5,
-        hue=0.5),
+        hue=0.5,
+    ),
     dict(type='GetMaskedImage'),
     dict(type='PackEditInputs'),
 ]
@@ -111,7 +115,9 @@ test_pipeline = [
             io_backend='local',
             color_type='unchanged',
             flag='unchanged',
-            file_client_kwargs=dict())),
+            file_client_kwargs={},
+        ),
+    ),
     dict(
         type='RandomResizedCrop',
         keys=['gt'],

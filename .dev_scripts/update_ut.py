@@ -22,10 +22,7 @@ args = parser.parse_args()
 
 
 def check_exclude(fn):
-    for pattern in args.exclude:
-        if fnmatch(fn, pattern):
-            return True
-    return False
+    return any(fnmatch(fn, pattern) for pattern in args.exclude)
 
 
 def update_ut():
@@ -49,7 +46,7 @@ def update_ut():
             os.makedirs(dirname, exist_ok=True)
 
             basename = osp.basename(f)
-            basename = 'test_' + basename
+            basename = f'test_{basename}'
 
             dst_path = osp.join(dirname, basename)
             target_ut.append(dst_path)
@@ -63,17 +60,15 @@ def update_ut():
                     blank_ut.append(dst_path)
 
     existing_ut = glob('tests/test_*/**/*.py', recursive=True)
-    additional_ut = list(set(existing_ut) - set(target_ut))
-
-    if len(additional_ut) > 0:
+    if additional_ut := list(set(existing_ut) - set(target_ut)):
         print('Additional UT:')
         for f in additional_ut:
             print(f)
-    if len(missing_ut) > 0:
+    if missing_ut:
         print('Missing UT:')
         for f in missing_ut:
             print(f)
-    if len(blank_ut) > 0:
+    if blank_ut:
         print('Blank UT:')
         for f in blank_ut:
             print(f)

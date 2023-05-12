@@ -58,9 +58,7 @@ class Text2ImageInferencer(BaseMMEditInferencer):
 
     def forward(self, inputs: InputsType) -> PredType:
         """Forward the inputs to the model."""
-        image = self.model.infer(**inputs)['samples']
-
-        return image
+        return self.model.infer(**inputs)['samples']
 
     def visualize(self,
                   preds: PredType,

@@ -52,11 +52,7 @@ class Crop(BaseTransform):
         Returns:
             tuple: cropped data and corresponding crop box.
         """
-        if not isinstance(data, list):
-            data_list = [data]
-        else:
-            data_list = data
-
+        data_list = [data] if not isinstance(data, list) else data
         crop_bbox_list = []
         data_list_ = []
 
@@ -120,7 +116,7 @@ class Crop(BaseTransform):
         for k in self.keys:
             data_, crop_bbox = self._crop(results[k])
             results[k] = data_
-            results[k + '_crop_bbox'] = crop_bbox
+            results[f'{k}_crop_bbox'] = crop_bbox
         results['crop_size'] = self.crop_size
         return results
 
@@ -178,8 +174,10 @@ class CropLike(BaseTransform):
 
     def __repr__(self):
 
-        return (self.__class__.__name__ + f' target_key={self.target_key}, ' +
-                f'reference_key={self.reference_key}')
+        return (
+            f'{self.__class__.__name__} target_key={self.target_key}, '
+            + f'reference_key={self.reference_key}'
+        )
 
 
 @TRANSFORMS.register_module()
@@ -274,7 +272,7 @@ class FixedCrop(BaseTransform):
                 data_, crop_bbox = self._crop(image, x_offset, y_offset,
                                               crop_w, crop_h)
                 cropped_images.append(data_)
-            results[k + '_crop_bbox'] = crop_bbox
+            results[f'{k}_crop_bbox'] = crop_bbox
             if not is_list:
                 cropped_images = cropped_images[0]
             results[k] = cropped_images
@@ -320,13 +318,12 @@ class ModCrop(BaseTransform):
         """
 
         img = results[self.key].copy()
-        scale = results['scale']
-        if img.ndim in [2, 3]:
-            h, w = img.shape[0], img.shape[1]
-            h_remainder, w_remainder = h % scale, w % scale
-            img = img[:h - h_remainder, :w - w_remainder, ...]
-        else:
+        if img.ndim not in [2, 3]:
             raise ValueError(f'Wrong img ndim: {img.ndim}.')
+        h, w = img.shape[0], img.shape[1]
+        scale = results['scale']
+        h_remainder, w_remainder = h % scale, w % scale
+        img = img[:h - h_remainder, :w - w_remainder, ...]
         results[self.key] = img
 
         return results
@@ -545,7 +542,7 @@ class RandomResizedCrop(BaseTransform):
                 self.crop_size,
                 return_scale=False,
                 interpolation=self.interpolation)
-            results[k + '_crop_bbox'] = crop_bbox
+            results[f'{k}_crop_bbox'] = crop_bbox
 
         return results
 
@@ -656,7 +653,7 @@ class CropAroundCenter(BaseTransform):
 
     def __repr__(self):
 
-        return self.__class__.__name__ + f'(crop_size={self.crop_size})'
+        return f'{self.__class__.__name__}(crop_size={self.crop_size})'
 
 
 @TRANSFORMS.register_module()

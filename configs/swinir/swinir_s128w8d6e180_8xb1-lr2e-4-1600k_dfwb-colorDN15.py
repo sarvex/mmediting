@@ -107,10 +107,12 @@ train_dataloader = dict(
         type=dataset_type,
         ann_file='meta_info_DFWB8550sub_GT.txt',
         metainfo=dict(dataset_type='dfwb', task_name='denoising'),
-        data_root=data_root + '/DFWB',
+        data_root=f'{data_root}/DFWB',
         data_prefix=dict(img='', gt=''),
         filename_tmpl=dict(img='{}', gt='{}'),
-        pipeline=train_pipeline))
+        pipeline=train_pipeline,
+    ),
+)
 
 val_dataloader = dict(
     num_workers=4,
@@ -120,9 +122,11 @@ val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         metainfo=dict(dataset_type='mcmaster', task_name='denoising'),
-        data_root=data_root + '/McMaster',
+        data_root=f'{data_root}/McMaster',
         data_prefix=dict(img='', gt=''),
-        pipeline=val_pipeline))
+        pipeline=val_pipeline,
+    ),
+)
 
 val_evaluator = [
     dict(type='PSNR', prefix='McMaster'),

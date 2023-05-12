@@ -15,8 +15,7 @@ except ImportError:
                 digit_ver.append(int(x))
             elif x.find('rc') != -1:
                 patch_version = x.split('rc')
-                digit_ver.append(int(patch_version[0]) - 1)
-                digit_ver.append(int(patch_version[1]))
+                digit_ver.extend((int(patch_version[0]) - 1, int(patch_version[1])))
         return digit_ver
 
 

@@ -25,7 +25,9 @@ model = dict(
         init_cfg=dict(
             type='Pretrained',
             checkpoint=pretrain_generator_url,
-            prefix='generator.')),
+            prefix='generator.',
+        ),
+    ),
     discriminator=dict(type='ModifiedVGG', in_channels=3, mid_channels=64),
     pixel_loss=dict(type='L1Loss', loss_weight=1e-2, reduction='mean'),
     perceptual_loss=dict(
@@ -34,20 +36,23 @@ model = dict(
         vgg_type='vgg19',
         perceptual_weight=1.0,
         style_weight=0,
-        norm_img=False),
+        norm_img=False,
+    ),
     gan_loss=dict(
         type='GANLoss',
         gan_type='vanilla',
         loss_weight=5e-3,
         real_label_val=1.0,
-        fake_label_val=0),
-    train_cfg=dict(),
-    test_cfg=dict(),
+        fake_label_val=0,
+    ),
+    train_cfg={},
+    test_cfg={},
     data_preprocessor=dict(
         type='EditDataPreprocessor',
-        mean=[0., 0., 0.],
-        std=[255., 255., 255.],
-    ))
+        mean=[0.0, 0.0, 0.0],
+        std=[255.0, 255.0, 255.0],
+    ),
+)
 
 train_cfg = dict(
     _delete_=True,

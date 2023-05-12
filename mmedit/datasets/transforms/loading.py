@@ -74,7 +74,7 @@ class LoadImageFromFile(BaseTransform):
 
         # cache
         self.use_cache = use_cache
-        self.cache = dict()
+        self.cache = {}
 
         # convert
         self.to_float32 = to_float32
@@ -149,13 +149,12 @@ class LoadImageFromFile(BaseTransform):
             if self.use_cache:
                 self.cache[filename] = img_bytes
 
-        img = mmcv.imfrombytes(
+        return mmcv.imfrombytes(
             content=img_bytes,
             flag=self.color_type,
             channel_order=self.channel_order,
-            backend=self.imdecode_backend)
-
-        return img
+            backend=self.imdecode_backend,
+        )
 
     def _convert(self, img: np.ndarray):
         """Convert an image to the require format.
@@ -186,18 +185,7 @@ class LoadImageFromFile(BaseTransform):
 
     def __repr__(self):
 
-        repr_str = (f'{self.__class__.__name__}('
-                    f'key={self.key}, '
-                    f'color_type={self.color_type}, '
-                    f'channel_order={self.channel_order}, '
-                    f'imdecode_backend={self.imdecode_backend}, '
-                    f'use_cache={self.use_cache}, '
-                    f'to_float32={self.to_float32}, '
-                    f'to_y_channel={self.to_y_channel}, '
-                    f'save_original_img={self.save_original_img}, '
-                    f'backend_args={self.backend_args})')
-
-        return repr_str
+        return f'{self.__class__.__name__}(key={self.key}, color_type={self.color_type}, channel_order={self.channel_order}, imdecode_backend={self.imdecode_backend}, use_cache={self.use_cache}, to_float32={self.to_float32}, to_y_channel={self.to_y_channel}, save_original_img={self.save_original_img}, backend_args={self.backend_args})'
 
 
 @TRANSFORMS.register_module()
@@ -270,7 +258,7 @@ class LoadMask(BaseTransform):
 
     def __init__(self, mask_mode='bbox', mask_config=None):
         self.mask_mode = mask_mode
-        self.mask_config = dict() if mask_config is None else mask_config
+        self.mask_config = {} if mask_config is None else mask_config
         assert isinstance(self.mask_config, dict)
 
         # set init info if needed in some modes
@@ -295,7 +283,7 @@ class LoadMask(BaseTransform):
         elif self.mask_mode == 'file':
             self.io_backend = 'local'
             self.color_type = 'unchanged'
-            self.file_client_kwargs = dict()
+            self.file_client_kwargs = {}
             self.file_backend = None
 
     def _get_random_mask_from_set(self):
@@ -306,11 +294,7 @@ class LoadMask(BaseTransform):
         mask_idx = np.random.randint(0, self.mask_set_size)
         mask_bytes = self.file_backend.get(self.mask_list[mask_idx])
         mask = mmcv.imfrombytes(mask_bytes, flag=self.color_type)  # HWC, BGR
-        if mask.ndim == 2:
-            mask = np.expand_dims(mask, axis=2)
-        else:
-            mask = mask[:, :, 0:1]
-
+        mask = np.expand_dims(mask, axis=2) if mask.ndim == 2 else mask[:, :, 0:1]
         mask[mask > 0] = 1.
         return mask
 
@@ -321,11 +305,7 @@ class LoadMask(BaseTransform):
             self.file_backend = get_file_backend(backend_args=backend_args)
         mask_bytes = self.file_backend.get(path)
         mask = mmcv.imfrombytes(mask_bytes, flag=self.color_type)  # HWC, BGR
-        if mask.ndim == 2:
-            mask = np.expand_dims(mask, axis=2)
-        else:
-            mask = mask[:, :, 0:1]
-
+        mask = np.expand_dims(mask, axis=2) if mask.ndim == 2 else mask[:, :, 0:1]
         mask[mask > 0] = 1.
         return mask
 
@@ -359,7 +339,7 @@ class LoadMask(BaseTransform):
         return results
 
     def __repr__(self):
-        return self.__class__.__name__ + f"(mask_mode='{self.mask_mode}')"
+        return f"{self.__class__.__name__}(mask_mode='{self.mask_mode}')"
 
 
 @TRANSFORMS.register_module()
@@ -392,12 +372,15 @@ class GetSpatialDiscountMask(BaseTransform):
         """
         w, h = np.meshgrid(np.arange(mask_width), np.arange(mask_height))
         grid_stack = np.stack([h, w], axis=2)
-        mask_values = (self.gamma**(np.minimum(
-            grid_stack, [mask_height - 1, mask_width - 1] - grid_stack) *
-                                    self.beta)).max(
-                                        axis=2, keepdims=True)
-
-        return mask_values
+        return (
+            self.gamma
+            ** (
+                np.minimum(
+                    grid_stack, [mask_height - 1, mask_width - 1] - grid_stack
+                )
+                * self.beta
+            )
+        ).max(axis=2, keepdims=True)
 
     def transform(self, results):
         """transform function.
@@ -424,8 +407,7 @@ class GetSpatialDiscountMask(BaseTransform):
         return results
 
     def __repr__(self):
-        return self.__class__.__name__ + (f'(gamma={self.gamma}, '
-                                          f'beta={self.beta})')
+        return f'{self.__class__.__name__}(gamma={self.gamma}, beta={self.beta})'
 
 
 @TRANSFORMS.register_module()

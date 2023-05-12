@@ -52,9 +52,9 @@ class MattingInferencer(BaseMMEditInferencer):
         data = dict(merged_path=img, trimap_path=trimap)
         _data = test_pipeline(data)
         trimap = _data['data_samples'].trimap.data
-        preprocess_res = dict()
-        preprocess_res['inputs'] = torch.cat([_data['inputs'], trimap],
-                                             dim=0).float()
+        preprocess_res = {
+            'inputs': torch.cat([_data['inputs'], trimap], dim=0).float()
+        }
         preprocess_res = collate([preprocess_res])
         preprocess_res['data_samples'] = EditDataSample.stack(
             [_data['data_samples']])
@@ -105,6 +105,4 @@ class MattingInferencer(BaseMMEditInferencer):
         Returns:
             dict: The output dictionary.
         """
-        result = {}
-        result['pred_alpha'] = data_sample.output.pred_alpha.data.cpu()
-        return result
+        return {'pred_alpha': data_sample.output.pred_alpha.data.cpu()}

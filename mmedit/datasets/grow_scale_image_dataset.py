@@ -71,7 +71,7 @@ class GrowScaleImgDataset(BaseDataset):
 
         assert isinstance(data_roots, dict)
         self.data_roots = data_roots
-        self._img_scales = sorted([int(x) for x in data_roots.keys()])
+        self._img_scales = sorted([int(x) for x in data_roots])
         self._curr_scale = self._img_scales[0]
         self._actual_curr_scale = self._curr_scale
         self.data_root = self.data_roots[str(self._curr_scale)]
@@ -83,7 +83,7 @@ class GrowScaleImgDataset(BaseDataset):
         if self.gpu_samples_per_scale is not None:
             assert isinstance(self.gpu_samples_per_scale, dict)
         else:
-            self.gpu_samples_per_scale = dict()
+            self.gpu_samples_per_scale = {}
         self.gpu_samples_base = gpu_samples_base
 
         if io_backend is None:
@@ -145,7 +145,7 @@ class GrowScaleImgDataset(BaseDataset):
         self.data_root = self.data_roots[str(self._curr_scale)]
         self.load_data_list()
         # print basic dataset information to check the validity
-        print_log('Update Dataset: ' + repr(self), 'current')
+        print_log(f'Update Dataset: {repr(self)}', 'current')
         return True
 
     def concat_imgs_list_to(self, num):

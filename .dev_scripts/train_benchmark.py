@@ -176,15 +176,15 @@ def parse_args():
 
 
 def create_train_job_batch(commands, model_info, args, port, script_name):
-    config_http_prefix_blob = ('https://github.com/open-mmlab/mmediting/'
-                               'blob/master/')
-    config_http_prefix_tree = ('https://github.com/open-mmlab/mmediting/'
-                               'tree/master/')
     fname = model_info.name
 
     config = model_info.config
     if config.startswith('http'):
+        config_http_prefix_blob = ('https://github.com/open-mmlab/mmediting/'
+                                   'blob/master/')
         config = config.replace(config_http_prefix_blob, './')
+        config_http_prefix_tree = ('https://github.com/open-mmlab/mmediting/'
+                                   'tree/master/')
         config = config.replace(config_http_prefix_tree, './')
 
     config = config.replace('configs', args.config_dir)
@@ -197,15 +197,8 @@ def create_train_job_batch(commands, model_info, args, port, script_name):
     except Exception:
         if 'official' in model_info.config:
             return None
-        else:
-            pattern = r'\d+xb\d+'
-            parse_res = re.search(pattern, config.name)
-            if not parse_res:
-                # defaults to use 1 gpu
-                n_gpus = 1
-            else:
-                n_gpus = int(parse_res.group().split('x')[0])
-
+        parse_res = re.search(r'\d+xb\d+', config.name)
+        n_gpus = 1 if not parse_res else int(parse_res.group().split('x')[0])
     if args.gpus_per_job is not None:
         n_gpus = min(args.gpus_per_job, n_gpus)
 
@@ -293,11 +286,12 @@ def train(args):
     commands = []
     if args.models:
         patterns = [re.compile(pattern) for pattern in args.models]
-        filter_models = {}
-        for k, v in models.items():
-            if any([re.match(pattern, k) for pattern in patterns]):
-                filter_models[k] = v
-        if len(filter_models) == 0:
+        filter_models = {
+            k: v
+            for k, v in models.items()
+            if any(re.match(pattern, k) for pattern in patterns)
+        }
+        if not filter_models:
             print('No model found, please specify models in:')
             print('\n'.join(models.keys()))
             return
@@ -427,11 +421,12 @@ def summary(args):
 
     if args.models:
         patterns = [re.compile(pattern) for pattern in args.models]
-        filter_models = {}
-        for k, v in models.items():
-            if any([re.match(pattern, k) for pattern in patterns]):
-                filter_models[k] = v
-        if len(filter_models) == 0:
+        filter_models = {
+            k: v
+            for k, v in models.items()
+            if any(re.match(pattern, k) for pattern in patterns)
+        }
+        if not filter_models:
             print('No model found, please specify models in:')
             print('\n'.join(models.keys()))
             return

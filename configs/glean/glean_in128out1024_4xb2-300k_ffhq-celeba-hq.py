@@ -18,7 +18,9 @@ model = dict(
             checkpoint='http://download.openmmlab.com/mmediting/stylegan2/'
             'official_weights/stylegan2-ffhq-config-f-official_20210327'
             '_171224-bce9310c.pth',
-            prefix='generator_ema')),
+            prefix='generator_ema',
+        ),
+    ),
     discriminator=dict(
         type='StyleGANv2Discriminator',
         in_size=1024,
@@ -27,7 +29,9 @@ model = dict(
             checkpoint='http://download.openmmlab.com/mmediting/stylegan2/'
             'official_weights/stylegan2-ffhq-config-f-official_20210327'
             '_171224-bce9310c.pth',
-            prefix='discriminator')),
+            prefix='discriminator',
+        ),
+    ),
     pixel_loss=dict(type='MSELoss', loss_weight=1.0, reduction='mean'),
     perceptual_loss=dict(
         type='PerceptualLoss',
@@ -37,15 +41,17 @@ model = dict(
         style_weight=0,
         norm_img=True,
         criterion='mse',
-        pretrained='torchvision://vgg16'),
+        pretrained='torchvision://vgg16',
+    ),
     gan_loss=dict(
         type='GANLoss',
         gan_type='vanilla',
         loss_weight=1e-2,
         real_label_val=1.0,
-        fake_label_val=0),
-    train_cfg=dict(),
-    test_cfg=dict(),
+        fake_label_val=0,
+    ),
+    train_cfg={},
+    test_cfg={},
     data_preprocessor=dict(
         type='EditDataPreprocessor',
         mean=[127.5, 127.5, 127.5],

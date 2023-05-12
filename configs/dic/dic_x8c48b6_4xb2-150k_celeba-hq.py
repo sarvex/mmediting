@@ -13,16 +13,18 @@ model_wrapper_cfg = dict(type='MMSeparateDistributedDataParallel')
 model = dict(
     type='DIC',
     generator=dict(
-        type='DICNet', in_channels=3, out_channels=3, mid_channels=48),
+        type='DICNet', in_channels=3, out_channels=3, mid_channels=48
+    ),
     pixel_loss=dict(type='L1Loss', loss_weight=1.0, reduction='mean'),
     align_loss=dict(type='MSELoss', loss_weight=0.1, reduction='mean'),
-    train_cfg=dict(),
-    test_cfg=dict(),
+    train_cfg={},
+    test_cfg={},
     data_preprocessor=dict(
         type='EditDataPreprocessor',
         mean=[129.795, 108.12, 96.39],
         std=[255, 255, 255],
-    ))
+    ),
+)
 
 train_pipeline = [
     dict(
@@ -108,15 +110,17 @@ data_root = 'data'
 
 train_dataloader = dict(
     num_workers=4,
-    batch_size=2,  # gpus 4
+    batch_size=2,
     persistent_workers=False,
     sampler=dict(type='InfiniteSampler', shuffle=True),
     dataset=dict(
         type=dataset_type,
         metainfo=dict(dataset_type='celeba', task_name='fsr'),
-        data_root=data_root + '/CelebA-HQ',
+        data_root=f'{data_root}/CelebA-HQ',
         data_prefix=dict(gt='train_256/all_256'),
-        pipeline=train_pipeline))
+        pipeline=train_pipeline,
+    ),
+)
 
 val_dataloader = dict(
     num_workers=4,
@@ -126,9 +130,11 @@ val_dataloader = dict(
     dataset=dict(
         type=dataset_type,
         metainfo=dict(dataset_type='celeba', task_name='fsr'),
-        data_root=data_root + '/CelebA-HQ',
+        data_root=f'{data_root}/CelebA-HQ',
         data_prefix=dict(gt='test_256/all_256'),
-        pipeline=test_pipeline))
+        pipeline=test_pipeline,
+    ),
+)
 
 test_dataloader = val_dataloader
 

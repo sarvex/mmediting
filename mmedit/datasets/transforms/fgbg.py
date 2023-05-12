@@ -94,8 +94,8 @@ class CompositeFg(BaseTransform):
         return results
 
     def _get_file_list(self, fg_dirs, alpha_dirs):
-        all_fg_list = list()
-        all_alpha_list = list()
+        all_fg_list = []
+        all_alpha_list = []
         for fg_dir, alpha_dir in zip(fg_dirs, alpha_dirs):
             fg_list = sorted(
                 self.file_backend.list_dir_or_file(fg_dir, list_dir=False))
@@ -145,8 +145,7 @@ class MergeFgAndBg(BaseTransform):
         return results
 
     def __repr__(self) -> str:
-        repr_str = f'{self.__class__.__name__}()'
-        return repr_str
+        return f'{self.__class__.__name__}()'
 
 
 @TRANSFORMS.register_module()
@@ -188,7 +187,7 @@ class PerturbBg(BaseTransform):
         return results
 
     def __repr__(self):
-        return self.__class__.__name__ + f'(gamma_ratio={self.gamma_ratio})'
+        return f'{self.__class__.__name__}(gamma_ratio={self.gamma_ratio})'
 
 
 @TRANSFORMS.register_module()
@@ -263,7 +262,7 @@ class RandomJitter(BaseTransform):
 
     def __repr__(self):
 
-        return self.__class__.__name__ + f'hue_range={self.hue_range}'
+        return f'{self.__class__.__name__}hue_range={self.hue_range}'
 
 
 @TRANSFORMS.register_module()
@@ -311,4 +310,4 @@ class RandomLoadResizeBg(BaseTransform):
         return results
 
     def __repr__(self):
-        return self.__class__.__name__ + f"(bg_dir='{self.bg_dir}')"
+        return f"{self.__class__.__name__}(bg_dir='{self.bg_dir}')"

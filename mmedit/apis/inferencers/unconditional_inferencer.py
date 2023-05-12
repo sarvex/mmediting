@@ -31,9 +31,7 @@ class UnconditionalInferencer(BaseMMEditInferencer):
         num_batches = self.extra_parameters['num_batches']
         sample_model = self.extra_parameters['sample_model']
 
-        results = dict(num_batches=num_batches, sample_model=sample_model)
-
-        return results
+        return dict(num_batches=num_batches, sample_model=sample_model)
 
     def forward(self, inputs: InputsType) -> PredType:
         """Forward the inputs to the model."""
@@ -54,8 +52,7 @@ class UnconditionalInferencer(BaseMMEditInferencer):
         Returns:
             List[np.ndarray]: Result of visualize
         """
-        res_list = []
-        res_list.extend([item.fake_img.data.cpu() for item in preds])
+        res_list = [item.fake_img.data.cpu() for item in preds]
         results = torch.stack(res_list, dim=0)
         if results.shape[1] == 3:
             results = (results[:, [2, 1, 0]] + 1.) / 2.
@@ -80,7 +77,6 @@ class UnconditionalInferencer(BaseMMEditInferencer):
         Returns:
             dict: The output dictionary.
         """
-        result = {}
-        result['fake_img'] = data_sample.fake_img.data.cpu()
+        result = {'fake_img': data_sample.fake_img.data.cpu()}
         result['noise'] = data_sample.noise.data.cpu()
         return result
